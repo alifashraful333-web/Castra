@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CASTRA</title>
+<style>
+:root{--bg:#eef1fb;--ink:#14183a;--mut:#5a6090;--card:#fff;--line:#d5daf0;--acc:#3b4cca;--on:#fff;--star:#b7791f;--ok:#1f7a4d;--bad:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1330;--ink:#e8ebff;--mut:#9aa1d6;--card:#181d44;--line:#2b3270;--acc:#8fa0ff;--on:#0f1330;--star:#f2c46d;--ok:#6fd6a0;--bad:#ff8a80}}
+:root[data-theme="dark"]{--bg:#0f1330;--ink:#e8ebff;--mut:#9aa1d6;--card:#181d44;--line:#2b3270;--acc:#8fa0ff;--on:#0f1330;--star:#f2c46d;--ok:#6fd6a0;--bad:#ff8a80}
+html{scroll-padding-top:env(safe-area-inset-top,0px);font-size:clamp(16px,.55vw + 11px,22px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:1rem/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+.pimg{max-width:100%;max-height:360px;border-radius:8px;border:1px solid var(--line);display:block;margin:8px 0}
+.app{display:grid;grid-template-columns:clamp(230px,19vw,320px) minmax(0,1fr);min-height:100vh}
+aside.side{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;background:var(--card);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:18px}
+.brand h1{letter-spacing:.08em}.fn{font-size:.75rem;line-height:1.3;margin-top:2px}
+aside.side h1{font-size:1.4rem}aside.side .brand{flex-direction:column;align-items:flex-start;gap:8px}aside.side .brand svg{width:64px;height:32px;flex:none}
+.who{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:12px;flex-wrap:wrap}
+main{min-width:0;padding:26px clamp(16px,3vw,56px) 60px}
+nav.menu{display:flex;flex-direction:column;gap:4px;flex:1}
+nav.menu button{width:100%}
+nav.menu button{background:transparent;color:var(--ink);border:1px solid transparent;text-align:left}
+nav.menu button[aria-pressed="true"]{background:var(--acc);color:var(--on);border-color:var(--acc)}
+.soon{font-size:.7rem;border:1px solid currentColor;border-radius:99px;padding:0 6px;margin-left:4px;opacity:.7}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+.stat{margin:0}.stat .num{font:600 1.75rem Georgia,serif}
+details summary{cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%}
+details>div{padding:8px 0 0}
+@media (max-width:759px){.app{grid-template-columns:1fr}aside.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}nav.menu{flex-direction:row;overflow-x:auto;padding-bottom:6px;flex:none}nav.menu button{white-space:nowrap;width:auto}}
+header{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{width:72px;height:36px}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0;font-weight:600}
+h1{font-size:1.5rem}h2{font-size:1.25rem;margin-bottom:12px}h3{font-size:1.0625rem}
+.sub{color:var(--mut);font-size:.875rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.grow{flex:1;min-width:160px}
+input,select,textarea{font:inherit;resize:vertical;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+label{font-size:.875rem;color:var(--mut);display:block;margin:10px 0 4px}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--acc);background:var(--acc);color:var(--on);border-radius:8px;padding:9px 14px;text-decoration:none;display:inline-block}
+button.ghost,.btn.ghost{background:transparent;color:var(--acc)}
+button.small{padding:5px 10px;font-size:.875rem}
+:focus-visible{outline:3px solid var(--star);outline-offset:2px}
+.tag{font-size:.8125rem;border:1px solid var(--line);border-radius:99px;padding:2px 10px;color:var(--mut)}
+.live{color:var(--ok);border-color:var(--ok)}
+.err{color:var(--bad);font-size:.875rem;margin:8px 0 0}
+.ok{color:var(--ok)}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{background:transparent;color:var(--ink);border-color:var(--line)}
+.tabs button[aria-pressed="true"]{background:var(--acc);color:var(--on);border-color:var(--acc)}
+.list>div{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.list>div:first-child{border-top:0}
+.note{font-size:.8125rem;color:var(--mut);margin-top:24px}
+.sw{width:30px;height:30px;border-radius:50%;padding:0;border:2px solid var(--line)}
+.sw[aria-pressed="true"]{outline:3px solid var(--star);outline-offset:2px}
+button.ghost[aria-pressed="true"]{background:var(--acc);color:var(--on)}
+.dot{display:inline-block;border-radius:50%;background:currentColor;vertical-align:middle}
+.bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.bar b{font-size:.875rem;color:var(--mut);font-weight:500;margin-right:2px}
+canvas{display:block;width:100%;height:auto;touch-action:none;border:1px solid var(--line);border-radius:8px}
+.fbar{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;overflow-x:auto;padding:4px 4px 8px;white-space:nowrap}.fbar>*{flex:none}.sep{width:1px;height:22px;background:var(--line)}.sw.s2{width:26px;height:26px}
+.card.full{display:flex;flex-direction:column;position:fixed;inset:0;z-index:50;margin:0;border-radius:0;overflow:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.card:not(.full) canvas{max-width:1200px}
+.card.full canvas{max-width:none;width:min(100%,calc((100dvh - 96px) * 16 / 9));margin:0 auto}
+.auth{max-width:420px;margin:8vh auto 0;padding:0 16px 40px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(92vw,520px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:99;font-size:.9rem}
+#toast[hidden]{display:none}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="alert" aria-live="assertive" hidden></div>
+<noscript>CASTRA needs JavaScript.</noscript>
+<script>
+const SB_URL='https://nejbzozizrvkvhkxhmpf.supabase.co',SB_KEY='sb_publishable_2lUwsn5dMh_6RD_352rIRQ_KyQ8LWC_';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
+const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},tab='dash',openRoom=null,mode='in';
+const isAuth=()=>!!me&&me.role==='author';
+const nm=id=>P[id]?P[id].name:'Unknown';
+const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
+const canManage=r=>isAuth()||r.teacher_id===me.id;
+const appr=r=>M.filter(m=>m.classroom_id===r.id&&m.status==='approved').map(m=>m.user_id);
+const pend=r=>M.filter(m=>m.classroom_id===r.id&&m.status==='pending').map(m=>m.user_id);
+const mine=r=>canManage(r)||appr(r).includes(me.id);
+const live=r=>S.find(s=>s.classroom_id===r.id&&s.live);
+const presentIds=s=>A.filter(a=>a.session_id===s.id).map(a=>a.user_id);
+const dts=t=>new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'});
+async function db(q){const r=await q;if(r.error)throw r.error;return r}
+async function load(){
+ const q=t=>sb.from(t).select('*');
+ const x=await Promise.all([q('profiles'),q('classrooms').order('created_at'),q('memberships'),q('class_sessions').order('started_at',{ascending:false}),q('attendance'),q('private_info')]);
+ const bad=x.find(r=>r.error);if(bad)throw bad.error;
+ P=Object.fromEntries(x[0].data.map(u=>[u.id,u]));R=x[1].data;M=x[2].data;S=x[3].data;A=x[4].data;mail=Object.fromEntries(x[5].data.map(u=>[u.id,u.email]));
+ if(P[me.id])me=P[me.id];else throw new Error('Your profile was not found. Please tell the website owner.');
+}
+async function enter(u){me={id:u.id};try{await load()}catch(e){me=null;throw e}tab='dash';openRoom=null;render()}
+async function refresh(){await load();render()}
+function logo(){return `<svg viewBox="0 0 72 36" aria-hidden="true"><polyline points="4,8 20,28 36,14 52,30 68,6" fill="none" stroke="var(--line)" stroke-width="2"/><g fill="var(--star)"><circle cx="4" cy="8" r="3"/><circle cx="20" cy="28" r="3.5"/><circle cx="36" cy="14" r="3"/><circle cx="52" cy="30" r="3.5"/><circle cx="68" cy="6" r="3"/></g></svg>`}
+const FULL='Cassiopeia Academic System for Teaching, Records &amp; Administration';
+function authView(){
+ const up=mode==='up';
+ return `<div class="auth"><div class="brand" style="margin-bottom:18px">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div><div class="card"><h2>${up?'Create an account':'Log in'}</h2>
+ ${up?'<label for="n">Full name</label><input id="n" autocomplete="name"><label for="i">Institution</label><input id="i" autocomplete="organization">':''}
+ <label for="e">Email</label><input id="e" type="email" autocomplete="email"><label for="p">Password</label><input id="p" type="password" autocomplete="${up?'new-password':'current-password'}">
+ <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
+ <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
+}
+const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','📝','Marks & Assessments',1],['pres','🖥️','Presentations',1],['board','✏️','Whiteboard',1],['records','📂','Class Records',1],['sched','📅','Schedule',1],['analytics','📈','Analytics',1],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
+function shell(body){
+ return `<div class="app"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
+ <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${m[1]} ${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
+ <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div></aside><main>${body}</main></div>`;
+}
+function dashView(){
+ const rs=R.filter(mine),lv=rs.filter(live),held=rs.reduce((n,r)=>n+S.filter(s=>s.classroom_id===r.id&&!s.live).length,0),mg=rs.filter(canManage);
+ const st=(n,t)=>`<div class="card stat"><div class="num">${n}</div><div class="sub">${t}</div></div>`;
+ return `<h2>Welcome, ${esc(me.name)}</h2><div class="stats">${st(rs.length,'Your classrooms')}${st(lv.length,'Live now')}${st(held,'Classes held')}${mg.length?st(mg.reduce((n,r)=>n+pend(r).length,0),'Join requests'):''}</div>
+ <h2>Live now</h2>${lv.length?lv.map(r=>`<div class="card row" style="justify-content:space-between"><div><h3>${esc(live(r).name)}</h3><div class="sub">${esc(r.name)}</div></div><button data-act="open" data-id="${r.id}">Open</button></div>`).join(''):'<div class="card sub">No class is live right now.</div>'}`;
+}
+function studentsView(){
+ const rs=R.filter(mine),mgr=isAuth()||rs.some(canManage);
+ const ids=isAuth()?Object.values(P).filter(u=>u.role==='student').map(u=>u.id):[...new Set(rs.flatMap(appr))];
+ return `<h2>Students</h2><div class="card list">${ids.length?ids.map(id=>`<div><div>${esc(nm(id))}<div class="sub">${esc(ins(id))}${mgr&&mail[id]?(ins(id)?' · ':'')+esc(mail[id]):''}</div></div><span class="tag">${M.filter(m=>m.user_id===id&&m.status==='approved').length} classrooms</span></div>`).join(''):'<div class="sub">No students yet.</div>'}</div>`;
+}
+function roomsView(){
+ let h='';
+ if(isAuth()){const ts=Object.values(P).filter(u=>u.role!=='student');
+  h+=`<div class="card"><h2>Create a classroom</h2><div class="row"><div class="grow"><label for="rn">Classroom name</label><input id="rn"></div><div class="grow"><label for="rt">Teacher</label><select id="rt">${ts.map(t=>`<option value="${t.id}"${t.id===me.id?' selected':''}>${esc(t.name)}${t.role==='author'?' (author)':''}</option>`).join('')}</select></div></div><div style="margin-top:12px"><button data-act="mkroom">Create classroom</button></div></div>`}
+ h+='<h2>Classes</h2>';if(!R.length)h+='<div class="card sub">No classrooms yet. The author creates them.</div>';
+ for(const r of R){const can=mine(r),p=M.some(m=>m.classroom_id===r.id&&m.user_id===me.id&&m.status==='pending');
+  h+=`<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(r.name)}</h3><div class="sub">Teacher: ${esc(nm(r.teacher_id))}</div></div><div class="row">${live(r)?'<span class="tag live">Class live</span>':''}${can?`<button data-act="open" data-id="${r.id}">Open</button>`:p?'<span class="tag">Request sent</span>':`<button class="ghost" data-act="req" data-id="${r.id}">Request to join</button>`}</div></div></div>`}
+ return h;
+}
+function roomView(){
+ const r=R.find(x=>x.id===openRoom);if(!r)return '';
+ const m=canManage(r),l=live(r),mem=appr(r),rq=pend(r),past=S.filter(s=>s.classroom_id===r.id&&!s.live);
+ const joinBtn=s=>`<a class="btn" data-act="join" data-id="${s.id}" href="${esc(s.link)}" target="_blank" rel="noopener">${presentIds(s).includes(me.id)?'Open the class again':'Join class'}</a>`;
+ let c;
+ if(l&&m)c=`<div class="row"><span class="tag live">Class live</span><span class="sub">Started ${dts(l.started_at)}</span></div><label for="cn">Class name</label><div class="row"><input id="cn" class="grow" value="${esc(l.name)}"><button class="small" data-act="rename" data-id="${l.id}">Save name</button></div>
+  <div style="margin:12px 0">${joinBtn(l)}</div><h3 style="margin:12px 0 6px">Present now (${presentIds(l).length})</h3>${presentIds(l).length?presentIds(l).map(i=>`<div>${esc(nm(i))}</div>`).join(''):'<div class="sub">No one has joined yet.</div>'}<div style="margin-top:12px"><button class="ghost" data-act="end" data-id="${l.id}">End class</button></div>`;
+ else if(m)c=`<label for="sn">Class name</label><input id="sn" value="${esc(r.name)}"><label for="sl">Google Meet link</label><input id="sl" placeholder="https://meet.google.com/abc-defg-hij"><div style="margin-top:12px"><button data-act="start" data-id="${r.id}">Start class</button></div>`;
+ else if(l)c=`<h3>${esc(l.name)}</h3><p class="sub">Your class is live.</p>${presentIds(l).includes(me.id)?'<p class="ok">You are marked present.</p>':''}${joinBtn(l)}`;
+ else c='<p class="sub">No class is running right now. Joining happens here once your teacher starts one.</p>';
+ if(past.length)c+=`<h3 style="margin:18px 0 6px">Past classes</h3><div class="list">${past.map(s=>`<div><span>${esc(s.name)}<span class="sub"> · ${new Date(s.started_at).toLocaleDateString()}</span></span>${m?`<span class="tag">${presentIds(s).length} present</span>`:`<span class="tag ${presentIds(s).includes(me.id)?'live':''}">${presentIds(s).includes(me.id)?'Present':'Absent'}</span>`}</div>`).join('')}</div>`;
+ let p='';
+ if(m&&rq.length)p+=`<h3 style="margin-bottom:6px">Join requests</h3><div class="list">${rq.map(i=>`<div><span>${esc(nm(i))}<span class="sub"> · ${esc(ins(i))}</span></span><span class="row"><button class="small" data-act="approve" data-id="${r.id}" data-u="${i}">Approve</button><button class="small ghost" data-act="remove" data-id="${r.id}" data-u="${i}">Decline</button></span></div>`).join('')}</div>`;
+ p+=`<h3 style="margin:${p?'16px':'0'} 0 6px">Students (${mem.length})</h3>${mem.length?`<div class="list">${mem.map(i=>`<div><span>${esc(nm(i))}<span class="sub"> · ${esc(ins(i))}</span></span>${m?`<button class="small ghost" data-act="remove" data-id="${r.id}" data-u="${i}">Remove</button>`:''}</div>`).join('')}</div>`:'<div class="sub">No students yet.</div>'}`;
+ return `<button class="ghost small" data-act="back" style="margin-bottom:14px">Back to classrooms</button><h2>${esc(r.name)}</h2><div class="sub" style="margin:-8px 0 14px">Teacher: ${esc(nm(r.teacher_id))}</div><div class="card"><h2>Classroom</h2>${c}</div><div class="card"><h2>People</h2>${p}</div>`;
+}
+function attendView(){
+ const rs=R.filter(mine);if(!rs.length)return '<h2>Attendance</h2><div class="card sub">Join a classroom to see attendance.</div>';
+ return '<h2>Attendance</h2>'+rs.map(r=>{const m=canManage(r),all=S.filter(s=>s.classroom_id===r.id);
+  const row=s=>{const t=`${esc(s.name)}<span class="sub"> · ${new Date(s.started_at).toLocaleDateString()}${s.live?' · live':''}</span>`,pr=presentIds(s);
+   if(!m){const ok=pr.includes(me.id);return `<div><span>${t}</span><span class="tag ${ok?'live':''}">${ok?'Present':'Absent'}</span></div>`}
+   const ab=appr(r).filter(i=>!pr.includes(i));
+   return `<div><details style="width:100%"><summary><span>${t}</span><span class="tag">${pr.length} present · ${ab.length} absent</span></summary><div><b>Present:</b> ${pr.length?pr.map(i=>esc(nm(i))).join(', '):'none'}<br><b>Absent:</b> ${ab.length?ab.map(i=>esc(nm(i))).join(', '):'none'}</div></details></div>`};
+  return `<div class="card"><h3 style="margin-bottom:8px">${esc(r.name)}</h3>${all.length?`<div class="list">${all.map(row).join('')}</div>`:'<p class="sub">No classes yet.</p>'}</div>`}).join('');
+}
+function adminView(){
+ return `<h2>Administration</h2><div class="card list">${Object.values(P).map(u=>`<div><div>${esc(u.name)}<div class="sub">${u.institution?esc(u.institution)+' · ':''}${esc(mail[u.id]||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':`<select data-role="${u.id}" style="width:auto" aria-label="Role for ${esc(u.name)}"><option value="student"${u.role==='student'?' selected':''}>student</option><option value="teacher"${u.role==='teacher'?' selected':''}>teacher</option></select>`}</div>`).join('')}</div>`;
+}
+function page(){
+ const m=MENU.find(x=>x[0]===tab)||MENU[0];
+ if(tab==='dash')return dashView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();
+ if(tab==='attend')return attendView();if(tab==='admin'&&isAuth())return adminView();
+ return `<h2>${esc(m[2])}</h2><div class="card"><p>This page is not available yet.</p><p class="sub">It is being moved to the shared database and will return in an update.</p></div>`;
+}
+function render(){$('app').innerHTML=me?shell(openRoom?roomView():page()):authView()}
+const ACT={
+ mode(){mode=mode==='in'?'up':'in';render()},
+ async signup(){
+  const name=val('n'),institution=val('i'),email=val('e').toLowerCase(),password=$('p').value;
+  if(!name)return say('Enter your name.');if(!institution)return say('Enter your institution.');
+  if(!/^\S+@\S+\.\S+$/.test(email))return say('Enter a valid email.');if(password.length<6)return say('Use a password with at least 6 characters.');
+  say('');const r=await sb.auth.signUp({email,password,options:{data:{name,institution}}});
+  if(r.error)return say(r.error.message);
+  if(!r.data.session)return say('Account created. Check your email to confirm it, then log in.');
+  await enter(r.data.user)},
+ async login(){
+  const email=val('e').toLowerCase(),password=$('p').value;if(!email||!password)return say('Enter your email and password.');
+  say('');const r=await sb.auth.signInWithPassword({email,password});if(r.error)return say(r.error.message);await enter(r.data.user)},
+ async out(){await sb.auth.signOut();me=null;openRoom=null;mode='in';render()},
+ tab(el){tab=el.dataset.v;openRoom=null;render()},
+ open(el){openRoom=el.dataset.id;tab='rooms';render()},
+ back(){openRoom=null;render()},
+ async mkroom(){const name=val('rn');if(!name)return say('Write the classroom name.');await db(sb.from('classrooms').insert({name,teacher_id:$('rt').value||null}));say('Classroom created.');await refresh()},
+ async req(el){await db(sb.from('memberships').insert({classroom_id:el.dataset.id,user_id:me.id,status:'pending'}));await refresh()},
+ async approve(el){await db(sb.from('memberships').update({status:'approved'}).eq('classroom_id',el.dataset.id).eq('user_id',el.dataset.u));await refresh()},
+ async remove(el){await db(sb.from('memberships').delete().eq('classroom_id',el.dataset.id).eq('user_id',el.dataset.u));await refresh()},
+ async start(el){const name=val('sn'),link=val('sl');if(!name)return say('Enter a class name.');
+  if(!MEET.test(link))return say('Paste a Google Meet link that starts with https://meet.google.com/');
+  await db(sb.from('class_sessions').insert({classroom_id:el.dataset.id,name,link,live:true}));await refresh()},
+ async rename(el){const name=val('cn');if(!name)return;await db(sb.from('class_sessions').update({name}).eq('id',el.dataset.id));say('Class name saved.');await refresh()},
+ async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
+ async join(el){if(!presentIds({id:el.dataset.id}).includes(me.id))await db(sb.from('attendance').insert({session_id:el.dataset.id,user_id:me.id}));await refresh()}
+};
+document.addEventListener('click',async ev=>{
+ const el=ev.target.closest('[data-act]');if(!el||el.disabled)return;const f=ACT[el.dataset.act];if(!f)return;
+ if(el.dataset.act==='mode')ev.preventDefault();
+ el.disabled=true;try{await f(el)}catch(e){say(e.message||String(e))}finally{el.disabled=false}
+});
+document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.closest&&ev.target.closest('.auth')&&ev.target.tagName==='INPUT'){const b=document.querySelector('.auth button[data-act]');if(b)b.click()}});
+document.addEventListener('change',async ev=>{
+ const s=ev.target.closest('[data-role]');if(!s)return;
+ try{await db(sb.from('profiles').update({role:s.value}).eq('id',s.dataset.role));say('Role updated.');await refresh()}catch(e){say(e.message)}
+});
+(async()=>{try{const r=await sb.auth.getSession();if(r.data&&r.data.session)await enter(r.data.session.user)}catch(e){say(e.message||String(e))}render()})();
+</script>
+</body>
+</html>
