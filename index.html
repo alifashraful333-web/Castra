@@ -5,15 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CASTRA</title>
 <style>
-:root{--bg:#eef1fb;--ink:#14183a;--mut:#5a6090;--card:#fff;--line:#d5daf0;--acc:#3b4cca;--on:#fff;--star:#b7791f;--ok:#1f7a4d;--bad:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1330;--ink:#e8ebff;--mut:#9aa1d6;--card:#181d44;--line:#2b3270;--acc:#8fa0ff;--on:#0f1330;--star:#f2c46d;--ok:#6fd6a0;--bad:#ff8a80}}
-:root[data-theme="dark"]{--bg:#0f1330;--ink:#e8ebff;--mut:#9aa1d6;--card:#181d44;--line:#2b3270;--acc:#8fa0ff;--on:#0f1330;--star:#f2c46d;--ok:#6fd6a0;--bad:#ff8a80}
+:root{--bg:#eef1fb;--ink:#14183a;--mut:#5a6090;--card:#fff;--line:#d5daf0;--acc:#3b4cca;--on:#fff;--star:#b7791f;--warm:#a8480b;--ok:#1f7a4d;--bad:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1330;--ink:#e8ebff;--mut:#9aa1d6;--card:#181d44;--line:#2b3270;--acc:#8fa0ff;--on:#0f1330;--star:#f2c46d;--warm:#ffb86b;--ok:#6fd6a0;--bad:#ff8a80}}
+:root[data-theme="dark"]{--bg:#0f1330;--ink:#e8ebff;--mut:#9aa1d6;--card:#181d44;--line:#2b3270;--acc:#8fa0ff;--on:#0f1330;--star:#f2c46d;--warm:#ffb86b;--ok:#6fd6a0;--bad:#ff8a80}
 html{scroll-padding-top:env(safe-area-inset-top,0px);font-size:clamp(16px,.55vw + 11px,22px)}
 *{box-sizing:border-box}
+a:not(.btn){color:var(--warm);font-weight:600;text-decoration:underline;text-underline-offset:3px}
 body{margin:0;background:var(--bg);color:var(--ink);font:1rem/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 .pimg{max-width:100%;max-height:360px;border-radius:8px;border:1px solid var(--line);display:block;margin:8px 0}
 .app{display:grid;grid-template-columns:clamp(230px,19vw,320px) minmax(0,1fr);min-height:100vh}
-aside.side{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;background:var(--card);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:18px}
+aside.side{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;background:var(--card);border-right:1px solid var(--line);padding:62px 14px 18px;display:flex;flex-direction:column;gap:18px}
 .brand h1{letter-spacing:.08em}.fn{font-size:.75rem;line-height:1.3;margin-top:2px}
 aside.side h1{font-size:1.4rem}aside.side .brand{flex-direction:column;align-items:flex-start;gap:8px}aside.side .brand svg{width:64px;height:32px;flex:none}
 .who{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:12px;flex-wrap:wrap}
@@ -68,6 +69,11 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border:1px solid v
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 #toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(92vw,520px);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:99;font-size:.9rem}
+.app.closed{grid-template-columns:1fr}.app.closed aside.side{display:none}.app.closed main{padding-top:68px}
+#burger{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:10px;z-index:60;width:42px;height:42px;padding:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px}
+#burger i{display:block;width:20px;height:2px;background:currentColor;border-radius:2px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media (max-width:759px){.cols{grid-template-columns:1fr}}
 #toast[hidden]{display:none}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -83,12 +89,14 @@ const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,P={},R=[],M=[],S=[],A=[],mail={},tab='dash',openRoom=null,mode='in';
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
-const canManage=r=>isAuth()||r.teacher_id===me.id;
-const appr=r=>M.filter(m=>m.classroom_id===r.id&&m.status==='approved').map(m=>m.user_id);
+const tchrs=r=>[r.teacher_id,...M.filter(m=>m.classroom_id===r.id&&m.status==='approved'&&m.role==='teacher').map(m=>m.user_id)].filter(Boolean);
+const canManage=r=>isAuth()||tchrs(r).includes(me.id);
+const byName=(a,b)=>(a.name||'').localeCompare(b.name||'',undefined,{sensitivity:'base'});
+const appr=r=>M.filter(m=>m.classroom_id===r.id&&m.status==='approved'&&m.role!=='teacher').map(m=>m.user_id);
 const pend=r=>M.filter(m=>m.classroom_id===r.id&&m.status==='pending').map(m=>m.user_id);
 const mine=r=>canManage(r)||appr(r).includes(me.id);
 const live=r=>S.find(s=>s.classroom_id===r.id&&s.live);
@@ -97,9 +105,9 @@ const dts=t=>new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'
 async function db(q){const r=await q;if(r.error)throw r.error;return r}
 async function load(){
  const q=t=>sb.from(t).select('*');
- const x=await Promise.all([q('profiles'),q('classrooms').order('created_at'),q('memberships'),q('class_sessions').order('started_at',{ascending:false}),q('attendance'),q('private_info')]);
+ const x=await Promise.all([q('profiles'),q('classrooms').order('created_at'),q('memberships'),q('class_sessions').order('started_at',{ascending:false}),q('attendance'),q('private_info'),q('records'),sb.from('presentations').select('id,classroom_id,topic,author_id,created_at,size'),q('resources')]);
  const bad=x.find(r=>r.error);if(bad)throw bad.error;
- P=Object.fromEntries(x[0].data.map(u=>[u.id,u]));R=x[1].data;M=x[2].data;S=x[3].data;A=x[4].data;mail=Object.fromEntries(x[5].data.map(u=>[u.id,u.email]));
+ P=Object.fromEntries(x[0].data.map(u=>[u.id,u]));R=x[1].data;M=x[2].data;S=x[3].data;A=x[4].data;mail=Object.fromEntries(x[5].data.map(u=>[u.id,u.email]));REC=x[6].data;PRES=x[7].data;RES=x[8].data;
  if(P[me.id])me=P[me.id];else throw new Error('Your profile was not found. Please tell the website owner.');
 }
 async function enter(u){me={id:u.id};try{await load()}catch(e){me=null;throw e}tab='dash';openRoom=null;render()}
@@ -114,10 +122,10 @@ function authView(){
  <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
-const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','📝','Marks & Assessments',1],['pres','🖥️','Presentations',1],['board','✏️','Whiteboard',1],['records','📂','Class Records',1],['sched','📅','Schedule',1],['analytics','📈','Analytics',1],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
+const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','📝','Marks & Assessments',1],['pres','🖥️','Presentations'],['res','','Resources'],['board','✏️','Whiteboard',1],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','📈','Analytics',1],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
 function shell(body){
- return `<div class="app"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
- <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${m[1]} ${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
+ return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
+ <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
  <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div></aside><main>${body}</main></div>`;
 }
 function dashView(){
@@ -127,9 +135,9 @@ function dashView(){
  <h2>Live now</h2>${lv.length?lv.map(r=>`<div class="card row" style="justify-content:space-between"><div><h3>${esc(live(r).name)}</h3><div class="sub">${esc(r.name)}</div></div><button data-act="open" data-id="${r.id}">Open</button></div>`).join(''):'<div class="card sub">No class is live right now.</div>'}`;
 }
 function studentsView(){
- const rs=R.filter(mine),mgr=isAuth()||rs.some(canManage);
- const ids=isAuth()?Object.values(P).filter(u=>u.role==='student').map(u=>u.id):[...new Set(rs.flatMap(appr))];
- return `<h2>Students</h2><div class="card list">${ids.length?ids.map(id=>`<div><div>${esc(nm(id))}<div class="sub">${esc(ins(id))}${mgr&&mail[id]?(ins(id)?' · ':'')+esc(mail[id]):''}</div></div><span class="tag">${M.filter(m=>m.user_id===id&&m.status==='approved').length} classrooms</span></div>`).join(''):'<div class="sub">No students yet.</div>'}</div>`;
+ const all=Object.values(P).sort(byName);
+ const col=(t,l)=>`<div><h3 style="margin-bottom:8px">${t} (${l.length})</h3><div class="card list">${l.length?l.map(u=>`<div><div>${esc(u.name)}<div class="sub">${esc(u.institution||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':''}</div>`).join(''):'<div class="sub">None yet.</div>'}</div></div>`;
+ return `<h2>Students &amp; Teachers</h2><div class="cols">${col('Students',all.filter(u=>u.role==='student'))}${col('Teachers',all.filter(u=>u.role!=='student'))}</div>`;
 }
 function roomsView(){
  let h='';
@@ -137,7 +145,7 @@ function roomsView(){
   h+=`<div class="card"><h2>Create a classroom</h2><div class="row"><div class="grow"><label for="rn">Classroom name</label><input id="rn"></div><div class="grow"><label for="rt">Teacher</label><select id="rt">${ts.map(t=>`<option value="${t.id}"${t.id===me.id?' selected':''}>${esc(t.name)}${t.role==='author'?' (author)':''}</option>`).join('')}</select></div></div><div style="margin-top:12px"><button data-act="mkroom">Create classroom</button></div></div>`}
  h+='<h2>Classes</h2>';if(!R.length)h+='<div class="card sub">No classrooms yet. The author creates them.</div>';
  for(const r of R){const can=mine(r),p=M.some(m=>m.classroom_id===r.id&&m.user_id===me.id&&m.status==='pending');
-  h+=`<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(r.name)}</h3><div class="sub">Teacher: ${esc(nm(r.teacher_id))}</div></div><div class="row">${live(r)?'<span class="tag live">Class live</span>':''}${can?`<button data-act="open" data-id="${r.id}">Open</button>`:p?'<span class="tag">Request sent</span>':`<button class="ghost" data-act="req" data-id="${r.id}">Request to join</button>`}</div></div></div>`}
+  h+=`<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(r.name)}</h3><div class="sub">Teachers: ${esc(tchrs(r).map(nm).join(', '))}</div></div><div class="row">${live(r)?'<span class="tag live">Class live</span>':''}${can?`<button data-act="open" data-id="${r.id}">Open</button>`:p?'<span class="tag">Request sent</span>':`<button class="ghost" data-act="req" data-id="${r.id}">Request to join</button>`}</div></div></div>`}
  return h;
 }
 function roomView(){
@@ -153,8 +161,11 @@ function roomView(){
  if(past.length)c+=`<h3 style="margin:18px 0 6px">Past classes</h3><div class="list">${past.map(s=>`<div><span>${esc(s.name)}<span class="sub"> · ${new Date(s.started_at).toLocaleDateString()}</span></span>${m?`<span class="tag">${presentIds(s).length} present</span>`:`<span class="tag ${presentIds(s).includes(me.id)?'live':''}">${presentIds(s).includes(me.id)?'Present':'Absent'}</span>`}</div>`).join('')}</div>`;
  let p='';
  if(m&&rq.length)p+=`<h3 style="margin-bottom:6px">Join requests</h3><div class="list">${rq.map(i=>`<div><span>${esc(nm(i))}<span class="sub"> · ${esc(ins(i))}</span></span><span class="row"><button class="small" data-act="approve" data-id="${r.id}" data-u="${i}">Approve</button><button class="small ghost" data-act="remove" data-id="${r.id}" data-u="${i}">Decline</button></span></div>`).join('')}</div>`;
- p+=`<h3 style="margin:${p?'16px':'0'} 0 6px">Students (${mem.length})</h3>${mem.length?`<div class="list">${mem.map(i=>`<div><span>${esc(nm(i))}<span class="sub"> · ${esc(ins(i))}</span></span>${m?`<button class="small ghost" data-act="remove" data-id="${r.id}" data-u="${i}">Remove</button>`:''}</div>`).join('')}</div>`:'<div class="sub">No students yet.</div>'}`;
- return `<button class="ghost small" data-act="back" style="margin-bottom:14px">Back to classrooms</button><h2>${esc(r.name)}</h2><div class="sub" style="margin:-8px 0 14px">Teacher: ${esc(nm(r.teacher_id))}</div><div class="card"><h2>Classroom</h2>${c}</div><div class="card"><h2>People</h2>${p}</div>`;
+ const rsel=(i,cur)=>`<select data-mrole="${i}" data-id="${r.id}" style="width:auto" aria-label="Role of ${esc(nm(i))}"><option value="student"${cur==='student'?' selected':''}>student</option><option value="teacher"${cur==='teacher'?' selected':''}>teacher</option></select>`;
+ const tl=tchrs(r);
+ p+=`<h3 style="margin:${p?'16px':'0'} 0 6px">Teachers (${tl.length})</h3><div class="list">${tl.map(i=>`<div><span>${esc(nm(i))}<span class="sub"> · ${esc(ins(i))}</span></span>${i===r.teacher_id?'<span class="tag">main teacher</span>':m?rsel(i,'teacher'):''}</div>`).join('')}</div>`;
+ p+=`<h3 style="margin:16px 0 6px">Students (${mem.length})</h3>${mem.length?`<div class="list">${mem.map(i=>`<div><span>${esc(nm(i))}<span class="sub"> · ${esc(ins(i))}</span></span>${m?`<span class="row">${rsel(i,'student')}<button class="small ghost" data-act="remove" data-id="${r.id}" data-u="${i}">Remove</button></span>`:''}</div>`).join('')}</div>`:'<div class="sub">No students yet.</div>'}`;
+ return `<button class="ghost small" data-act="back" style="margin-bottom:14px">Back to classrooms</button><h2>${esc(r.name)}</h2><div class="sub" style="margin:-8px 0 14px">Teachers: ${esc(tchrs(r).map(nm).join(', '))}</div><div class="card"><h2>Classroom</h2>${c}</div><div class="card"><h2>People</h2>${p}</div>`;
 }
 function attendView(){
  const rs=R.filter(mine);if(!rs.length)return '<h2>Attendance</h2><div class="card sub">Join a classroom to see attendance.</div>';
@@ -166,12 +177,39 @@ function attendView(){
   return `<div class="card"><h3 style="margin-bottom:8px">${esc(r.name)}</h3>${all.length?`<div class="list">${all.map(row).join('')}</div>`:'<p class="sub">No classes yet.</p>'}</div>`}).join('');
 }
 function adminView(){
- return `<h2>Administration</h2><div class="card list">${Object.values(P).map(u=>`<div><div>${esc(u.name)}<div class="sub">${u.institution?esc(u.institution)+' · ':''}${esc(mail[u.id]||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':`<select data-role="${u.id}" style="width:auto" aria-label="Role for ${esc(u.name)}"><option value="student"${u.role==='student'?' selected':''}>student</option><option value="teacher"${u.role==='teacher'?' selected':''}>teacher</option></select>`}</div>`).join('')}</div>`;
+ const all=Object.values(P).sort(byName);
+ return `<h2>Administration</h2><p class="sub">${all.length} accounts, in alphabetical order.</p><div class="card list">${all.map(u=>`<div><div>${esc(u.name)}<div class="sub">${u.institution?esc(u.institution)+' · ':''}${esc(mail[u.id]||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':`<span class="row"><select data-role="${u.id}" style="width:auto" aria-label="Role for ${esc(u.name)}"><option value="student"${u.role==='student'?' selected':''}>student</option><option value="teacher"${u.role==='teacher'?' selected':''}>teacher</option></select><button class="small ghost" data-act="deluser" data-u="${u.id}" data-n="${esc(u.name)}">Remove</button></span>`}</div>`).join('')}</div>`;
+}
+function recordsView(){
+ const mg=R.filter(canManage),vis=new Set(R.filter(mine).map(r=>r.id)),rs=REC.filter(x=>vis.has(x.classroom_id)).sort((a,b)=>String(b.updated_at).localeCompare(String(a.updated_at)));
+ const names=[...new Set(S.filter(x=>mg.some(r=>r.id===x.classroom_id)).map(x=>x.name))];
+ const f=mg.length?`<div class="card"><h2>Upload a class record</h2><label for="rr">Classroom</label><select id="rr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
+ <label for="rnm">Class name (choose one or type it)</label><input id="rnm" list="cnames"><datalist id="cnames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+ <label for="rl">Class record link (Google Drive video)</label><input id="rl" type="url" placeholder="https://drive.google.com/..."><div style="margin-top:12px"><button data-act="addrec">Upload</button></div></div>`:(me.role==='student'?'':'<div class="card sub">You are not a teacher of any classroom yet.</div>');
+ return `<h2>Class Records</h2>${f}${rs.length?rs.map(x=>{const r=R.find(q=>q.id===x.classroom_id);
+  return `<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(x.name)}</h3><div class="sub">${esc(r?r.name:'')}</div></div><a class="btn" href="${esc(x.link)}" target="_blank" rel="noopener">Open record</a></div><div class="sub" style="margin-top:8px">Uploaded by ${esc(nm(x.author_id))} · ${dts(x.updated_at)}</div>${isAuth()||x.author_id===me.id?`<div style="margin-top:10px"><button class="small ghost" data-act="delrec" data-id="${x.id}">Delete</button></div>`:''}</div>`}).join(''):'<div class="card sub">No class records yet.</div>'}`;
+}
+function presView(){
+ if(viewing)return `<button class="ghost small" data-act="closepres" style="margin-bottom:12px">Back to presentations</button><div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">${esc(viewing.topic)}</h2><button class="small" data-act="fspres">Full screen</button></div><iframe id="pv" sandbox="allow-scripts allow-popups" srcdoc="${esc(viewing.html)}" title="${esc(viewing.topic)}" allowfullscreen style="width:100%;height:78vh;border:1px solid var(--line);border-radius:8px;background:#fff"></iframe>`;
+ const mg=R.filter(canManage),vis=new Set(R.filter(mine).map(r=>r.id)),ps=PRES.filter(x=>vis.has(x.classroom_id)).sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
+ const f=mg.length?`<div class="card"><h2>Upload a presentation</h2><label for="pr">Classroom</label><select id="pr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
+ <label for="pt">Topic name</label><input id="pt"><label for="pf">Presentation file (.html)</label><input id="pf" type="file" accept=".html,.htm,text/html"><div style="margin-top:12px"><button data-act="addpres">Upload</button></div></div>`:(me.role==='student'?'':'<div class="card sub">You are not a teacher of any classroom yet.</div>');
+ return `<h2>Presentations</h2>${f}${ps.length?ps.map(x=>{const r=R.find(q=>q.id===x.classroom_id);
+  return `<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(x.topic)}</h3><div class="sub">${esc(r?r.name:'')}</div></div><div class="row"><button data-act="openpres" data-id="${x.id}" data-t="${esc(x.topic)}">Open</button><button class="ghost" data-act="dlpres" data-id="${x.id}" data-t="${esc(x.topic)}">Download</button></div></div><div class="sub" style="margin-top:8px">Uploaded by ${esc(nm(x.author_id))} · ${dts(x.created_at)}</div>${isAuth()||x.author_id===me.id?`<div style="margin-top:10px"><button class="small ghost" data-act="delpres" data-id="${x.id}">Delete</button></div>`:''}</div>`}).join(''):'<div class="card sub">No presentations yet.</div>'}`;
+}
+function resView(){
+ const mg=R.filter(canManage),vis=R.filter(mine);
+ const f=mg.length?`<div class="card"><h2>Add a resource</h2><label for="xr">Classroom</label><select id="xr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
+ <label for="xn">Resource name</label><input id="xn"><label for="xl">Link (optional)</label><input id="xl" type="url" placeholder="https://..."><div style="margin-top:12px"><button data-act="addres">Upload</button></div></div>`:(me.role==='student'?'':'<div class="card sub">You are not a teacher of any classroom yet.</div>');
+ const blocks=vis.map(r=>{const l=RES.filter(x=>x.classroom_id===r.id).sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
+  if(!l.length)return '';
+  return `<div class="card"><h3 style="margin-bottom:8px">${esc(r.name)}</h3><div class="list">${l.map((x,i)=>`<div><div><b>${i+1}.</b> ${esc(x.name)}<div class="sub">Added by ${esc(nm(x.author_id))} · ${dts(x.created_at)}</div></div><span class="row">${x.link?`<a class="btn" href="${esc(x.link)}" target="_blank" rel="noopener">Open</a>`:''}${isAuth()||x.author_id===me.id?`<button class="small ghost" data-act="delres" data-id="${x.id}">Delete</button>`:''}</span></div>`).join('')}</div></div>`}).join('');
+ return `<h2>Resources</h2>${f}${blocks||'<div class="card sub">No resources yet.</div>'}`;
 }
 function page(){
  const m=MENU.find(x=>x[0]===tab)||MENU[0];
  if(tab==='dash')return dashView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();
- if(tab==='attend')return attendView();if(tab==='admin'&&isAuth())return adminView();
+ if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='admin'&&isAuth())return adminView();
  return `<h2>${esc(m[2])}</h2><div class="card"><p>This page is not available yet.</p><p class="sub">It is being moved to the shared database and will return in an update.</p></div>`;
 }
 function render(){$('app').innerHTML=me?shell(openRoom?roomView():page()):authView()}
@@ -189,7 +227,7 @@ const ACT={
   const email=val('e').toLowerCase(),password=$('p').value;if(!email||!password)return say('Enter your email and password.');
   say('');const r=await sb.auth.signInWithPassword({email,password});if(r.error)return say(r.error.message);await enter(r.data.user)},
  async out(){await sb.auth.signOut();me=null;openRoom=null;mode='in';render()},
- tab(el){tab=el.dataset.v;openRoom=null;render()},
+ tab(el){tab=el.dataset.v;openRoom=null;viewing=null;if(innerWidth<760)navOpen=false;render()},
  open(el){openRoom=el.dataset.id;tab='rooms';render()},
  back(){openRoom=null;render()},
  async mkroom(){const name=val('rn');if(!name)return say('Write the classroom name.');await db(sb.from('classrooms').insert({name,teacher_id:$('rt').value||null}));say('Classroom created.');await refresh()},
@@ -201,6 +239,25 @@ const ACT={
   await db(sb.from('class_sessions').insert({classroom_id:el.dataset.id,name,link,live:true}));await refresh()},
  async rename(el){const name=val('cn');if(!name)return;await db(sb.from('class_sessions').update({name}).eq('id',el.dataset.id));say('Class name saved.');await refresh()},
  async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
+ nav(){navOpen=!navOpen;render()},
+ async addres(){const cid=$('xr').value,name=val('xn'),link=val('xl');
+  if(!name)return say('Type the resource name.');if(link&&!/^https?:\/\/\S+\.\S+/i.test(link))return say('The link must start with https://');
+  await db(sb.from('resources').insert({classroom_id:cid,name,link:link||null,author_id:me.id}));say('Resource added.');await refresh()},
+ async delres(el){if(!confirm('Delete this resource?'))return;await db(sb.from('resources').delete().eq('id',el.dataset.id));await refresh()},
+ async addrec(){const cid=$('rr').value,name=val('rnm'),link=val('rl');
+  if(!name)return say('Choose or type the class name.');if(!/^https?:\/\/\S+\.\S+/i.test(link))return say('Paste the full Google Drive link, starting with https://');
+  await db(sb.from('records').insert({classroom_id:cid,name,class_date:new Date().toISOString().slice(0,10),link,author_id:me.id}));say('Class record uploaded.');await refresh()},
+ async delrec(el){if(!confirm('Delete this class record?'))return;await db(sb.from('records').delete().eq('id',el.dataset.id));await refresh()},
+ async addpres(){const cid=$('pr').value,topic=val('pt'),f=$('pf').files[0];
+  if(!topic)return say('Write the topic name.');if(!f)return say('Choose the presentation file (.html).');if(f.size>8e6)return say('The file is larger than 8 MB.');
+  const html=await f.text();if(!/<html|<!doctype|<body/i.test(html))return say('This does not look like an HTML presentation file.');
+  await db(sb.from('presentations').insert({classroom_id:cid,topic,html,size:html.length,author_id:me.id}));say('Presentation uploaded.');await refresh()},
+ async openpres(el){const r=await db(sb.from('presentations').select('html').eq('id',el.dataset.id).single());viewing={id:el.dataset.id,topic:el.dataset.t,html:r.data.html};render()},
+ closepres(){viewing=null;render()},
+ fspres(){const f=$('pv');if(f&&f.requestFullscreen)f.requestFullscreen().catch(()=>say('Full screen is not available in this browser.'))},
+ async dlpres(el){const r=await db(sb.from('presentations').select('html').eq('id',el.dataset.id).single());const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.data.html],{type:'text/html'}));a.download=((el.dataset.t||'presentation').replace(/[^\w\- ]+/g,'').trim()||'presentation')+'.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)},
+ async delpres(el){if(!confirm('Delete this presentation?'))return;await db(sb.from('presentations').delete().eq('id',el.dataset.id));await refresh()},
+ async deluser(el){if(!confirm('Remove '+el.dataset.n+' from the website? This deletes the account and cannot be undone.'))return;await db(sb.rpc('admin_delete_user',{uid:el.dataset.u}));say('Account removed.');await refresh()},
  async join(el){if(!presentIds({id:el.dataset.id}).includes(me.id))await db(sb.from('attendance').insert({session_id:el.dataset.id,user_id:me.id}));await refresh()}
 };
 document.addEventListener('click',async ev=>{
@@ -210,6 +267,8 @@ document.addEventListener('click',async ev=>{
 });
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.closest&&ev.target.closest('.auth')&&ev.target.tagName==='INPUT'){const b=document.querySelector('.auth button[data-act]');if(b)b.click()}});
 document.addEventListener('change',async ev=>{
+ const mr=ev.target.closest('[data-mrole]');
+ if(mr){try{await db(sb.rpc('set_member_role',{cid:mr.dataset.id,uid:mr.dataset.mrole,new_role:mr.value}));say('Role updated.');await refresh()}catch(e){say(e.message)}return}
  const s=ev.target.closest('[data-role]');if(!s)return;
  try{await db(sb.from('profiles').update({role:s.value}).eq('id',s.dataset.role));say('Role updated.');await refresh()}catch(e){say(e.message)}
 });
