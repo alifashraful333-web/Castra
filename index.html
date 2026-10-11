@@ -75,6 +75,9 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border:1px solid v
 .app.closed{grid-template-columns:1fr}.app.closed aside.side{display:none}.app.closed main{padding-top:68px}
 #burger{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));left:10px;z-index:60;width:42px;height:42px;padding:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px}
 #burger i{display:block;width:20px;height:2px;background:currentColor;border-radius:2px}
+.editor{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;padding:calc(8px + env(safe-area-inset-top,0px)) 10px calc(8px + env(safe-area-inset-bottom,0px))}
+.editor .fbar{flex-wrap:wrap;overflow:visible;gap:6px}
+.editor canvas{width:min(100%,calc((100dvh - 84px) * 16 / 9));margin:0 auto;display:block;border:1px solid var(--line);border-radius:8px;touch-action:none}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
 @media (max-width:759px){.cols{grid-template-columns:1fr}}
 #toast[hidden]{display:none}
@@ -92,7 +95,7 @@ const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -108,9 +111,9 @@ const dts=t=>new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'
 async function db(q){const r=await q;if(r.error)throw r.error;return r}
 async function load(){
  const q=t=>sb.from(t).select('*');
- const x=await Promise.all([q('profiles'),q('classrooms').order('created_at'),q('memberships'),q('class_sessions').order('started_at',{ascending:false}),q('attendance'),q('private_info'),q('records'),sb.from('presentations').select('id,classroom_id,topic,author_id,created_at,size'),q('resources')]);
+ const x=await Promise.all([q('profiles'),q('classrooms').order('created_at'),q('memberships'),q('class_sessions').order('started_at',{ascending:false}),q('attendance'),q('private_info'),q('records'),sb.from('presentations').select('id,classroom_id,topic,author_id,created_at,size'),q('resources'),q('boards')]);
  const bad=x.find(r=>r.error);if(bad)throw bad.error;
- P=Object.fromEntries(x[0].data.map(u=>[u.id,u]));R=x[1].data;M=x[2].data;S=x[3].data;A=x[4].data;mail=Object.fromEntries(x[5].data.map(u=>[u.id,u.email]));REC=x[6].data;PRES=x[7].data;RES=x[8].data;
+ P=Object.fromEntries(x[0].data.map(u=>[u.id,u]));R=x[1].data;M=x[2].data;S=x[3].data;A=x[4].data;mail=Object.fromEntries(x[5].data.map(u=>[u.id,u.email]));REC=x[6].data;PRES=x[7].data;RES=x[8].data;BR=x[9].data;
  if(P[me.id])me=P[me.id];else throw new Error('Your profile was not found. Please tell the website owner.');
 }
 async function enter(u){me={id:u.id};try{await load()}catch(e){me=null;throw e}tab='dash';openRoom=null;render()}
@@ -125,7 +128,7 @@ function authView(){
  <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
-const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','📝','Marks & Assessments',1],['pres','🖥️','Presentations'],['res','','Resources'],['board','✏️','Whiteboard',1],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','📈','Analytics',1],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
+const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','📝','Marks & Assessments',1],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','📈','Analytics',1],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
@@ -200,6 +203,76 @@ function presView(){
  return `<h2>Presentations</h2>${f}${ps.length?ps.map(x=>{const r=R.find(q=>q.id===x.classroom_id);
   return `<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(x.topic)}</h3><div class="sub">${esc(r?r.name:'')}</div></div><div class="row"><button data-act="openpres" data-id="${x.id}" data-t="${esc(x.topic)}">Open</button><button class="ghost" data-act="dlpres" data-id="${x.id}" data-t="${esc(x.topic)}">Download</button></div></div><div class="sub" style="margin-top:8px">Uploaded by ${esc(nm(x.author_id))} · ${dts(x.created_at)}</div>${isAuth()||x.author_id===me.id?`<div style="margin-top:10px"><button class="small ghost" data-act="delpres" data-id="${x.id}">Delete</button></div>`:''}</div>`}).join(''):'<div class="card sub">No presentations yet.</div>'}`;
 }
+const BG={white:'#ffffff',black:'#15171c',green:'#1f4d38',blue:'#1d3a8a',red:'#8b1e2d'};
+const PEN={red:'#e53935',orange:'#fb8c00',yellow:'#fdd835',green:'#43a047',cyan:'#00acc1',blue:'#1e88e5',purple:'#8e24aa',pink:'#ff6fae',brown:'#6d4c41',grey:'#9e9e9e',black:'#111111',white:'#ffffff'};
+const SIZES=[2,4,6,10,16,24],BW=1600,BH=900,K=1.7;
+const dday=t=>new Date(t).toLocaleDateString([],{dateStyle:'medium'});
+const curSlide=()=>bd?bd.slides[bd.cur]:bv.slides[bv.cur];
+function drawSlide(g,sd){
+ g.fillStyle=BG[sd.bg]||BG.white;g.fillRect(0,0,BW,BH);
+ for(const s of sd.strokes){
+  g.strokeStyle=g.fillStyle=s.e?(BG[sd.bg]||BG.white):PEN[s.c];g.lineWidth=s.s;g.lineCap=g.lineJoin='round';
+  if(s.p.length===1){g.beginPath();g.arc(s.p[0][0],s.p[0][1],s.s/2,0,7);g.fill()}
+  else{g.beginPath();s.p.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.stroke()}
+ }
+}
+function jpgBytes(sd){const c=document.createElement('canvas');c.width=BW;c.height=BH;drawSlide(c.getContext('2d'),sd);
+ const b=atob(c.toDataURL('image/jpeg',0.92).split(',')[1]),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u}
+function makePdf(jp){
+ const enc=new TextEncoder(),parts=[],offs=[];let len=0;
+ const add=x=>{const u=typeof x==='string'?enc.encode(x):x;parts.push(u);len+=u.length};
+ const obj=(n,fn)=>{offs[n]=len;add(n+' 0 obj\n');fn();add('\nendobj\n')};
+ const n=jp.length;add('%PDF-1.4\n');
+ obj(1,()=>add('<< /Type /Catalog /Pages 2 0 R >>'));
+ obj(2,()=>add('<< /Type /Pages /Count '+n+' /Kids ['+jp.map((_,i)=>(3+3*i)+' 0 R').join(' ')+'] >>'));
+ jp.forEach((j,i)=>{const q=3+3*i,cs='q '+BW+' 0 0 '+BH+' 0 0 cm /Im0 Do Q';
+  obj(q,()=>add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+BW+' '+BH+'] /Resources << /XObject << /Im0 '+(q+2)+' 0 R >> >> /Contents '+(q+1)+' 0 R >>'));
+  obj(q+1,()=>add('<< /Length '+cs.length+' >>\nstream\n'+cs+'\nendstream'));
+  obj(q+2,()=>{add('<< /Type /XObject /Subtype /Image /Width '+BW+' /Height '+BH+' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length '+j.length+' >>\nstream\n');add(j);add('\nendstream')});
+ });
+ const total=3*n+3,xo=len;add('xref\n0 '+total+'\n0000000000 65535 f \n');
+ for(let k=1;k<total;k++)add(String(offs[k]).padStart(10,'0')+' 00000 n \n');
+ add('trailer\n<< /Size '+total+' /Root 1 0 R >>\nstartxref\n'+xo+'\n%%EOF');
+ const out=new Uint8Array(len);let o=0;for(const u of parts){out.set(u,o);o+=u.length}return out;
+}
+function saveBlob(data,type,name){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)}
+const pdfName=n=>((n||'').replace(/[^\w\- ]+/g,'').trim()||'whiteboard')+'.pdf';
+function setSaveMsg(t){saveMsg=t;const m=$('savemsg');if(m)m.textContent=t}
+function dirty(){bd.slides[bd.cur].d=1;setSaveMsg('Saving...');clearTimeout(saveT);saveT=setTimeout(()=>flush().catch(e=>say(e.message)),1500)}
+async function flush(){
+ if(!bd)return;clearTimeout(saveT);const ds=bd.slides.filter(x=>x.d);
+ for(const x of ds){x.d=0;try{await db(sb.from('board_slides').update({bg:x.bg,strokes:x.strokes,position:bd.slides.indexOf(x)}).eq('id',x.id))}catch(e){x.d=1;setSaveMsg('Not saved');throw e}}
+ if(ds.length)await db(sb.from('boards').update({updated_at:new Date().toISOString()}).eq('id',bd.id));
+ setSaveMsg('Saved');
+}
+function editorHTML(){
+ const s=bd.slides[bd.cur],n=bd.slides.length,sep='<span class="sep"></span>';
+ const sw=(a,k,col,lb,on)=>`<button class="sw s2" data-act="${a}" data-v="${k}" aria-label="${lb}" aria-pressed="${on}" style="background:${col}"></button>`;
+ return `<div class="editor"><div class="fbar"><button class="small" data-act="exitboard">Save &amp; exit</button><b>${esc(bd.name)}</b><span class="sub" id="savemsg">${esc(saveMsg)}</span>${sep}<button class="small ghost" data-act="bprev"${bd.cur?'':' disabled'}>Prev</button><b>${bd.cur+1}/${n}</b><button class="small ghost" data-act="bnext"${bd.cur<n-1?'':' disabled'}>Next</button><button class="small ghost" data-act="addslide">+ Slide</button>${n>1?'<button class="small ghost" data-act="delslide">Delete slide</button>':''}${sep}${Object.keys(BG).map(k=>sw('bbg',k,BG[k],k+' board',s.bg===k)).join('')}${sep}${Object.keys(PEN).map(k=>sw('pen',k,PEN[k],k+' pen',tool==='pen'&&pen===k)).join('')}${sep}${SIZES.map(z=>`<button class="small ghost" data-act="size" data-v="${z}" aria-label="Size ${z}" aria-pressed="${size===z}" style="min-width:36px"><span class="dot" style="width:${Math.max(4,z*.7)}px;height:${Math.max(4,z*.7)}px"></span></button>`).join('')}<button class="small ghost" data-act="eraser" aria-pressed="${tool==='eraser'}">Eraser</button><button class="small ghost" data-act="bclear">Clear board</button>${sep}<button class="small" data-act="bpdf">PDF</button><button class="small ghost" data-act="bfs">Full screen</button></div><canvas id="bd" width="${BW}" height="${BH}" aria-label="Whiteboard"></canvas></div>`;
+}
+function viewHTML(){
+ const v=bv,n=v.slides.length,r=R.find(x=>x.id===v.board.classroom_id);
+ return `<button class="ghost small" data-act="vclose" style="margin-bottom:12px">Back to whiteboard</button><div class="row" style="justify-content:space-between;margin-bottom:8px"><div><h2 style="margin:0">${esc(v.board.name)}</h2><div class="sub">${esc(r?r.name:'')} · ${dday(v.board.created_at)} · by ${esc(nm(v.board.author_id))}</div></div><button class="small" data-act="vpdf">Download PDF</button></div><div class="bar"><button class="small ghost" data-act="vprev"${v.cur?'':' disabled'}>Prev</button><b>${v.cur+1}/${n}</b><button class="small ghost" data-act="vnext"${v.cur<n-1?'':' disabled'}>Next</button></div><canvas id="bd" width="${BW}" height="${BH}" aria-label="Saved whiteboard"></canvas>`;
+}
+function initCanvas(){
+ const c=$('bd');if(!c)return;drawSlide(c.getContext('2d'),curSlide());if(!bd)return;
+ const fit=()=>{const f=document.querySelector('.fbar'),h=f?f.offsetHeight:50,w=c.parentElement.clientWidth-20;c.style.width=Math.max(200,Math.min(w,(innerHeight-h-34)*16/9))+'px'};fit();onresize=fit;
+ let cur=null;const paint=()=>drawSlide(c.getContext('2d'),curSlide());
+ const pos=e=>{const r=c.getBoundingClientRect();return[Math.round((e.clientX-r.left)*c.width/r.width),Math.round((e.clientY-r.top)*c.height/r.height)]};
+ c.onpointerdown=e=>{c.setPointerCapture(e.pointerId);cur={c:pen,s:Math.round((tool==='eraser'?size*3:size)*K),e:tool==='eraser',p:[pos(e)]};curSlide().strokes.push(cur);paint()};
+ c.onpointermove=e=>{if(!cur)return;const a=cur.p[cur.p.length-1],b=pos(e);if(Math.hypot(b[0]-a[0],b[1]-a[1])<2)return;cur.p.push(b);
+  const g=c.getContext('2d');g.strokeStyle=cur.e?(BG[curSlide().bg]||BG.white):PEN[cur.c];g.lineWidth=cur.s;g.lineCap='round';g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()};
+ c.onpointerup=c.onpointercancel=()=>{if(cur){cur=null;paint();dirty()}};
+}
+function boardPage(){
+ if(bv)return viewHTML();
+ const mg=R.filter(canManage),vis=new Set(R.filter(mine).map(r=>r.id)),bs=BR.filter(b=>vis.has(b.classroom_id)).sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));
+ const names=[...new Set(S.filter(x=>mg.some(r=>r.id===x.classroom_id)).map(x=>x.name))];
+ const f=mg.length?`<div class="card"><h2>Open the whiteboard</h2><label for="wr">Classroom</label><select id="wr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select><label for="wn">Class name</label><input id="wn" list="wnames"><datalist id="wnames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist><div style="margin-top:12px"><button data-act="startboard">Open whiteboard</button></div></div>`:(me.role==='student'?'':'<div class="card sub">You are not a teacher of any classroom yet.</div>');
+ return `<h2>Whiteboard</h2>${f}<h2 style="margin-top:18px">Saved boards</h2>${bs.length?bs.map(b=>{const r=R.find(x=>x.id===b.classroom_id);
+  return `<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(b.name)}</h3><div class="sub">${esc(r?r.name:'')} · ${dday(b.created_at)} · by ${esc(nm(b.author_id))}</div></div><div class="row"><button data-act="vopen" data-id="${b.id}">Open</button><button class="ghost" data-act="vpdfl" data-id="${b.id}" data-n="${esc(b.name)}">PDF</button>${isAuth()||b.author_id===me.id?`<button class="small ghost" data-act="delboard" data-id="${b.id}">Delete</button>`:''}</div></div></div>`}).join(''):'<div class="card sub">No saved boards yet.</div>'}`;
+}
+async function boardSlides(id){const r=await db(sb.from('board_slides').select('*').eq('board_id',id).order('position'));const l=r.data.map(x=>({id:x.id,bg:x.bg,strokes:x.strokes||[]}));return l.length?l:[{id:null,bg:'white',strokes:[]}]}
 function resView(){
  const mg=R.filter(canManage),vis=R.filter(mine);
  const f=mg.length?`<div class="card"><h2>Add a resource</h2><label for="xr">Classroom</label><select id="xr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
@@ -212,10 +285,11 @@ function resView(){
 function page(){
  const m=MENU.find(x=>x[0]===tab)||MENU[0];
  if(tab==='dash')return dashView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();
- if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='admin'&&isAuth())return adminView();
+ if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='admin'&&isAuth())return adminView();
  return `<h2>${esc(m[2])}</h2><div class="card"><p>This page is not available yet.</p><p class="sub">It is being moved to the shared database and will return in an update.</p></div>`;
 }
-function render(){$('app').innerHTML=me?shell(openRoom?roomView():page()):authView()}
+function render(){const a=$('app');if(me&&bd){a.innerHTML=editorHTML();initCanvas();return}
+ a.innerHTML=me?shell(openRoom?roomView():page()):authView();if(me&&bv)initCanvas()}
 const ACT={
  mode(){mode=mode==='in'?'up':'in';render()},
  async signup(){
@@ -230,7 +304,7 @@ const ACT={
   const email=val('e').toLowerCase(),password=$('p').value;if(!email||!password)return say('Enter your email and password.');
   say('');const r=await sb.auth.signInWithPassword({email,password});if(r.error)return say(r.error.message);await enter(r.data.user)},
  async out(){await sb.auth.signOut();me=null;openRoom=null;mode='in';render()},
- tab(el){tab=el.dataset.v;openRoom=null;viewing=null;if(innerWidth<760)navOpen=false;render()},
+ tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render()},
  open(el){openRoom=el.dataset.id;tab='rooms';render()},
  back(){openRoom=null;render()},
  async mkroom(){const name=val('rn');if(!name)return say('Write the classroom name.');await db(sb.from('classrooms').insert({name,teacher_id:$('rt').value||null}));say('Classroom created.');await refresh()},
@@ -243,6 +317,24 @@ const ACT={
  async rename(el){const name=val('cn');if(!name)return;await db(sb.from('class_sessions').update({name}).eq('id',el.dataset.id));say('Class name saved.');await refresh()},
  async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
  nav(){navOpen=!navOpen;render()},
+ async startboard(){const cid=$('wr').value,name=val('wn');if(!name)return say('Type the class name first.');
+  const b=(await db(sb.from('boards').insert({classroom_id:cid,name,author_id:me.id}).select().single())).data;
+  const s=(await db(sb.from('board_slides').insert({board_id:b.id,position:0,bg:'white',strokes:[]}).select().single())).data;
+  bd={id:b.id,name,classroom_id:cid,cur:0,slides:[{id:s.id,bg:'white',strokes:[]}]};saveMsg='';render()},
+ async exitboard(){await flush();bd=null;saveMsg='';await refresh()},
+ bprev(){bd.cur--;render()},bnext(){bd.cur++;render()},
+ async addslide(){const bg=bd.slides[bd.cur].bg;const s=(await db(sb.from('board_slides').insert({board_id:bd.id,position:bd.slides.length,bg,strokes:[]}).select().single())).data;bd.slides.push({id:s.id,bg,strokes:[]});bd.cur=bd.slides.length-1;render()},
+ async delslide(){if(bd.slides.length<2||!confirm('Delete this slide?'))return;const x=bd.slides[bd.cur];await db(sb.from('board_slides').delete().eq('id',x.id));bd.slides.splice(bd.cur,1);bd.cur=Math.max(0,bd.cur-1);bd.slides.forEach(q=>q.d=1);dirty();render()},
+ bbg(el){bd.slides[bd.cur].bg=el.dataset.v;dirty();render()},
+ pen(el){pen=el.dataset.v;tool='pen';render()},size(el){size=+el.dataset.v;render()},eraser(){tool='eraser';render()},
+ bclear(){bd.slides[bd.cur].strokes=[];dirty();render()},
+ bpdf(){saveBlob(makePdf(bd.slides.map(jpgBytes)),'application/pdf',pdfName(bd.name))},
+ bfs(){const e=document.documentElement;if(e.requestFullscreen)e.requestFullscreen().catch(()=>say('Full screen is not available here.'))},
+ async vopen(el){const b=BR.find(x=>x.id===el.dataset.id);bv={board:b,slides:await boardSlides(b.id),cur:0};render()},
+ vclose(){bv=null;render()},vprev(){bv.cur--;render()},vnext(){bv.cur++;render()},
+ vpdf(){saveBlob(makePdf(bv.slides.map(jpgBytes)),'application/pdf',pdfName(bv.board.name))},
+ async vpdfl(el){const sl=await boardSlides(el.dataset.id);saveBlob(makePdf(sl.map(jpgBytes)),'application/pdf',pdfName(el.dataset.n))},
+ async delboard(el){if(!confirm('Delete this saved board?'))return;await db(sb.from('boards').delete().eq('id',el.dataset.id));await refresh()},
  async addres(){const cid=$('xr').value,name=val('xn'),link=val('xl');
   if(!name)return say('Type the resource name.');if(link&&!/^https?:\/\/\S+\.\S+/i.test(link))return say('The link must start with https://');
   await db(sb.from('resources').insert({classroom_id:cid,name,link:link||null,author_id:me.id}));say('Resource added.');await refresh()},
@@ -275,6 +367,7 @@ document.addEventListener('change',async ev=>{
  const s=ev.target.closest('[data-role]');if(!s)return;
  try{await db(sb.from('profiles').update({role:s.value}).eq('id',s.dataset.role));say('Role updated.');await refresh()}catch(e){say(e.message)}
 });
+window.addEventListener('beforeunload',e=>{if(bd&&bd.slides.some(x=>x.d)){e.preventDefault();e.returnValue=''}});
 (async()=>{try{const r=await sb.auth.getSession();if(r.data&&r.data.session)await enter(r.data.session.user)}catch(e){say(e.message||String(e))}render()})();
 </script>
 </body>
