@@ -95,7 +95,7 @@ const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -111,9 +111,9 @@ const dts=t=>new Date(t).toLocaleString([],{dateStyle:'medium',timeStyle:'short'
 async function db(q){const r=await q;if(r.error)throw r.error;return r}
 async function load(){
  const q=t=>sb.from(t).select('*');
- const x=await Promise.all([q('profiles'),q('classrooms').order('created_at'),q('memberships'),q('class_sessions').order('started_at',{ascending:false}),q('attendance'),q('private_info'),q('records'),sb.from('presentations').select('id,classroom_id,topic,author_id,created_at,size'),q('resources'),q('boards')]);
+ const x=await Promise.all([q('profiles'),q('classrooms').order('created_at'),q('memberships'),q('class_sessions').order('started_at',{ascending:false}),q('attendance'),q('private_info'),q('records'),sb.from('presentations').select('id,classroom_id,topic,author_id,created_at,size'),q('resources'),q('boards'),q('tasks'),sb.from('submissions').select('id,task_id,student_id,submitted_at,mark,marked_by,marked_at')]);
  const bad=x.find(r=>r.error);if(bad)throw bad.error;
- P=Object.fromEntries(x[0].data.map(u=>[u.id,u]));R=x[1].data;M=x[2].data;S=x[3].data;A=x[4].data;mail=Object.fromEntries(x[5].data.map(u=>[u.id,u.email]));REC=x[6].data;PRES=x[7].data;RES=x[8].data;BR=x[9].data;
+ P=Object.fromEntries(x[0].data.map(u=>[u.id,u]));R=x[1].data;M=x[2].data;S=x[3].data;A=x[4].data;mail=Object.fromEntries(x[5].data.map(u=>[u.id,u.email]));REC=x[6].data;PRES=x[7].data;RES=x[8].data;BR=x[9].data;TASKS=x[10].data;SUBS=x[11].data;
  if(P[me.id])me=P[me.id];else throw new Error('Your profile was not found. Please tell the website owner.');
 }
 async function enter(u){me={id:u.id};try{await load()}catch(e){me=null;throw e}tab='dash';openRoom=null;render()}
@@ -128,7 +128,7 @@ function authView(){
  <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
-const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','📝','Marks & Assessments',1],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','📈','Analytics',1],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
+const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','📈','Analytics',1],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
@@ -273,6 +273,59 @@ function boardPage(){
   return `<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(b.name)}</h3><div class="sub">${esc(r?r.name:'')} · ${dday(b.created_at)} · by ${esc(nm(b.author_id))}</div></div><div class="row"><button data-act="vopen" data-id="${b.id}">Open</button><button class="ghost" data-act="vpdfl" data-id="${b.id}" data-n="${esc(b.name)}">PDF</button>${isAuth()||b.author_id===me.id?`<button class="small ghost" data-act="delboard" data-id="${b.id}">Delete</button>`:''}</div></div></div>`}).join(''):'<div class="card sub">No saved boards yet.</div>'}`;
 }
 async function boardSlides(id){const r=await db(sb.from('board_slides').select('*').eq('board_id',id).order('position'));const l=r.data.map(x=>({id:x.id,bg:x.bg,strokes:x.strokes||[]}));return l.length?l:[{id:null,bg:'white',strokes:[]}]}
+const dopen=new Set(),dop=k=>dopen.has(k)?' open':'';
+const pvId=k=>'pv-'+k.replace(/\W/g,'');
+const pic=k=>`<div id="${pvId(k)}">${imgDraft[k]?`<img class="pimg" src="${imgDraft[k]}" alt="Chosen picture">`:''}</div>`;
+function pickImg(inp){
+ const f=inp.files[0],k=inp.dataset.img;if(!f)return;const im=new Image();
+ im.onload=()=>{const sc=Math.min(1,900/im.width),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
+  c.getContext('2d').drawImage(im,0,0,c.width,c.height);imgDraft[k]=c.toDataURL('image/jpeg',0.72);
+  const pv=$(pvId(k));if(pv)pv.innerHTML=`<img class="pimg" src="${imgDraft[k]}" alt="Chosen picture">`};
+ im.onerror=()=>say('That file could not be read as a picture.');
+ im.src=URL.createObjectURL(f);
+}
+const subOf=(t,uid)=>SUBS.find(x=>x.task_id===t.id&&x.student_id===uid);
+// Weighted result over problems that are MARKED for this student: sum(weight*mark/total)/sum(weight).
+// Problems not yet marked or not submitted are not counted.
+function stuMarks(rid,uid){let g=0,o=0,n=0,ws=0,wp=0;
+ for(const t of TASKS.filter(x=>x.classroom_id===rid)){const s=subOf(t,uid);if(s&&s.mark!=null){g+=s.mark;o+=t.total;n++;ws+=t.weight;wp+=t.weight*s.mark/t.total}}
+ return{g,o,n,pct:ws?wp/ws*100:null}}
+const fmtM=v=>n=>`${+n.g.toFixed(2)} / ${+n.o.toFixed(2)} · ${n.pct.toFixed(1)}% weighted · ${n.n} marked`;
+function marksTaskForm(mg){
+ return `<div class="card"><h2>Post a problem</h2><label for="tr">Classroom</label><select id="tr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
+ <label for="tt">Title</label><input id="tt"><label for="tx">Problem</label><textarea id="tx" rows="4"></textarea>
+ <div class="row"><div><label for="tm">Total marks</label><input id="tm" type="number" min="0" step="any" style="width:130px"></div><div><label for="tw">Weight (default 1)</label><input id="tw" type="number" min="0" step="any" value="1" style="width:130px"></div></div>
+ <label for="tf">Picture (optional)</label><input id="tf" type="file" accept="image/*" data-img="task">${pic('task')}
+ <div style="margin-top:12px"><button data-act="addtask">Post problem</button></div></div>`;
+}
+function marksCard(r,t,m){
+ const head=`<div class="row" style="justify-content:space-between"><h3>${esc(t.title)}</h3><span class="tag">${+t.total} marks · weight ${+t.weight}</span></div>${t.body?`<p style="white-space:pre-wrap;margin:8px 0">${esc(t.body)}</p>`:''}${t.image?`<img class="pimg" src="${t.image}" alt="Problem picture">`:''}<div class="sub">Posted by ${esc(nm(t.author_id))} · ${dts(t.created_at)}</div>`;
+ if(m){
+  const ids=appr(r).sort((a,b)=>byName(P[a]||{},P[b]||{})),got=ids.filter(i=>subOf(t,i)).length;
+  const rows=ids.length?ids.map(i=>{const x=subOf(t,i);
+   if(!x)return `<div><span>${esc(nm(i))}</span><span class="sub">Not submitted</span></div>`;
+   return `<div style="align-items:flex-start"><div><b>${esc(nm(i))}</b><div class="sub">Submitted ${dts(x.submitted_at)}</div>${subImg[x.id]?`<img class="pimg" style="max-height:300px" src="${subImg[x.id]}" alt="Solution by ${esc(nm(i))}">`:`<button class="small ghost" data-act="showsub" data-id="${x.id}">View solution</button>`}</div>
+   <div class="row"><input id="mk-${x.id}" type="number" min="0" max="${t.total}" step="any" style="width:90px" value="${x.mark==null?'':x.mark}" aria-label="Mark for ${esc(nm(i))}"><span class="sub">/ ${+t.total}</span><button class="small" data-act="savemark" data-id="${x.id}">${x.mark==null?'Save mark':'Update mark'}</button></div></div>`}).join(''):'<div class="sub">No students yet.</div>';
+  return `<div class="card">${head}<details data-d="t-${t.id}"${dop('t-'+t.id)} style="margin-top:10px"><summary><span>Submissions</span><span class="tag">${got} of ${ids.length}</span></summary><div class="list">${rows}</div></details>${isAuth()||t.author_id===me.id?`<div style="margin-top:10px"><button class="small ghost" data-act="deltask" data-id="${t.id}">Delete problem</button></div>`:''}</div>`;
+ }
+ const x=subOf(t,me.id);let b;
+ const mine_img=x?(subImg[x.id]?`<img class="pimg" style="max-height:240px" src="${subImg[x.id]}" alt="Your solution">`:`<button class="small ghost" data-act="showsub" data-id="${x.id}">View my solution</button>`):'';
+ if(x&&x.mark!=null)b=`<p class="ok">Marked: ${+x.mark} / ${+t.total}</p>${mine_img}`;
+ else b=`${x?`<p class="sub">Submitted ${dts(x.submitted_at)}. Waiting for your teacher to mark it. You can replace it until then.</p>${mine_img}`:''}<label for="sf-${t.id}">${x?'Replace your solution picture':'Upload a picture of your solution'}</label><input id="sf-${t.id}" type="file" accept="image/*" data-img="sub:${t.id}">${pic('sub:'+t.id)}<div style="margin-top:10px"><button class="small" data-act="submitsol" data-id="${t.id}">${x?'Replace solution':'Submit solution'}</button></div>`;
+ return `<div class="card">${head}<div style="margin-top:10px">${b}</div></div>`;
+}
+function marksView(){
+ const rs=R.filter(mine),mg=rs.filter(canManage);
+ if(!rs.length)return '<h2>Marks &amp; Assessments</h2>'+(me.role==='student'?'<div class="card sub">Join a classroom to see its problems.</div>':'<div class="card sub">You are not a teacher of any classroom yet.</div>');
+ let h='<h2>Marks &amp; Assessments</h2>'+(mg.length?marksTaskForm(mg):'');
+ for(const r of rs){
+  const m=canManage(r),ts=TASKS.filter(t=>t.classroom_id===r.id).sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));let top='';
+  if(m&&appr(r).length)top=`<details data-d="ms-${r.id}"${dop('ms-'+r.id)} style="margin:8px 0 12px"><summary><span>Marks summary</span><span class="tag">${appr(r).length} students</span></summary><div class="list">${appr(r).sort((a,b)=>byName(P[a]||{},P[b]||{})).map(i=>{const v=stuMarks(r.id,i);return `<div><span>${esc(nm(i))}</span><span class="tag">${v.n?fmtM()(v):'No marks yet'}</span></div>`}).join('')}</div><p class="sub" style="margin-top:8px">Weighted result = sum of (weight × mark ÷ total) ÷ sum of weights, over problems that are marked for that student. Problems not submitted or not yet marked are not counted.</p></details>`;
+  else if(!m){const v=stuMarks(r.id,me.id);top=`<p style="margin:6px 0 12px"><b>Your marks:</b> ${v.n?fmtM()(v):'none yet'}</p>`}
+  h+=`<h3 style="margin:18px 0 4px">${esc(r.name)}</h3>${top}${ts.length?ts.map(t=>marksCard(r,t,m)).join(''):'<div class="card sub">No problems yet.</div>'}`;
+ }
+ return h;
+}
 function resView(){
  const mg=R.filter(canManage),vis=R.filter(mine);
  const f=mg.length?`<div class="card"><h2>Add a resource</h2><label for="xr">Classroom</label><select id="xr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
@@ -285,7 +338,7 @@ function resView(){
 function page(){
  const m=MENU.find(x=>x[0]===tab)||MENU[0];
  if(tab==='dash')return dashView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();
- if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='admin'&&isAuth())return adminView();
+ if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='marks')return marksView();if(tab==='admin'&&isAuth())return adminView();
  return `<h2>${esc(m[2])}</h2><div class="card"><p>This page is not available yet.</p><p class="sub">It is being moved to the shared database and will return in an update.</p></div>`;
 }
 function render(){const a=$('app');if(me&&bd){a.innerHTML=editorHTML();initCanvas();return}
@@ -317,6 +370,21 @@ const ACT={
  async rename(el){const name=val('cn');if(!name)return;await db(sb.from('class_sessions').update({name}).eq('id',el.dataset.id));say('Class name saved.');await refresh()},
  async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
  nav(){navOpen=!navOpen;render()},
+ async addtask(){const cid=$('tr').value,title=val('tt'),body=val('tx'),total=parseFloat($('tm').value),weight=parseFloat($('tw').value||'1');
+  if(!title)return say('Write a title.');if(!body&&!imgDraft.task)return say('Write the problem or add a picture.');
+  if(!(total>0))return say('Enter the total marks.');if(!(weight>0))return say('The weight must be more than 0.');
+  await db(sb.from('tasks').insert({classroom_id:cid,title,body,image:imgDraft.task||null,total,weight,author_id:me.id}));imgDraft.task=null;say('Problem posted.');await refresh()},
+ async submitsol(el){const id=el.dataset.id,k='sub:'+id,t=TASKS.find(x=>x.id===id);if(!t)return;
+  if(!imgDraft[k])return say('Choose a picture of your solution first.');
+  const old=subOf(t,me.id);if(old&&old.mark!=null)return say('This solution is already marked.');
+  if(old){await db(sb.from('submissions').update({image:imgDraft[k],submitted_at:new Date().toISOString()}).eq('id',old.id));delete subImg[old.id]}
+  else await db(sb.from('submissions').insert({task_id:id,student_id:me.id,image:imgDraft[k]}));
+  imgDraft[k]=null;say('Solution submitted.');await refresh()},
+ async savemark(el){const x=SUBS.find(s=>s.id===el.dataset.id),t=x&&TASKS.find(q=>q.id===x.task_id);if(!x||!t)return;
+  const v=parseFloat($('mk-'+x.id).value);if(isNaN(v)||v<0||v>t.total)return say('Enter a mark from 0 to '+t.total+'.');
+  await db(sb.from('submissions').update({mark:v,marked_by:me.id,marked_at:new Date().toISOString()}).eq('id',x.id));say('Mark saved.');await refresh()},
+ async showsub(el){const id=el.dataset.id;if(!subImg[id]){const r=await db(sb.from('submissions').select('image').eq('id',id).single());subImg[id]=r.data.image}render()},
+ async deltask(el){if(!confirm('Delete this problem and all its solutions?'))return;await db(sb.from('tasks').delete().eq('id',el.dataset.id));await refresh()},
  async startboard(){const cid=$('wr').value,name=val('wn');if(!name)return say('Type the class name first.');
   const b=(await db(sb.from('boards').insert({classroom_id:cid,name,author_id:me.id}).select().single())).data;
   const s=(await db(sb.from('board_slides').insert({board_id:b.id,position:0,bg:'white',strokes:[]}).select().single())).data;
@@ -360,8 +428,10 @@ document.addEventListener('click',async ev=>{
  if(el.dataset.act==='mode')ev.preventDefault();
  el.disabled=true;try{await f(el)}catch(e){say(e.message||String(e))}finally{el.disabled=false}
 });
+document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.dataset.d){if(d.open)dopen.add(d.dataset.d);else dopen.delete(d.dataset.d)}},true);
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.closest&&ev.target.closest('.auth')&&ev.target.tagName==='INPUT'){const b=document.querySelector('.auth button[data-act]');if(b)b.click()}});
 document.addEventListener('change',async ev=>{
+ if(ev.target.matches&&ev.target.matches('input[data-img]'))return pickImg(ev.target);
  const mr=ev.target.closest('[data-mrole]');
  if(mr){try{await db(sb.rpc('set_member_role',{cid:mr.dataset.id,uid:mr.dataset.mrole,new_role:mr.value}));say('Role updated.');await refresh()}catch(e){say(e.message)}return}
  const s=ev.target.closest('[data-role]');if(!s)return;
