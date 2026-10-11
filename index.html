@@ -78,6 +78,11 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border:1px solid v
 .editor{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;padding:calc(8px + env(safe-area-inset-top,0px)) 10px calc(8px + env(safe-area-inset-bottom,0px))}
 .editor .fbar{flex-wrap:wrap;overflow:visible;gap:6px}
 .editor canvas{width:min(100%,calc((100dvh - 84px) * 16 / 9));margin:0 auto;display:block;border:1px solid var(--line);border-radius:8px;touch-action:none}
+.chart{display:flex;align-items:flex-end;gap:8px;height:170px;margin:10px 0}
+.chart .col{flex:1;min-width:26px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px}
+.chart .b{width:100%;background:var(--acc);border-radius:6px 6px 0 0}
+.chart small{font-size:.7rem;color:var(--mut);text-align:center;overflow-wrap:anywhere}
+.tb{width:100%;border-collapse:collapse;font-size:.9rem}.tb th,.tb td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}.tb th{color:var(--mut);font-weight:600}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
 @media (max-width:759px){.cols{grid-template-columns:1fr}}
 #toast[hidden]{display:none}
@@ -95,7 +100,7 @@ const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -128,7 +133,7 @@ function authView(){
  <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
-const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','📈','Analytics',1],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
+const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','','Analytics'],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
@@ -287,8 +292,8 @@ function pickImg(inp){
 const subOf=(t,uid)=>SUBS.find(x=>x.task_id===t.id&&x.student_id===uid);
 // Weighted result over problems that are MARKED for this student: sum(weight*mark/total)/sum(weight).
 // Problems not yet marked or not submitted are not counted.
-function stuMarks(rid,uid){let g=0,o=0,n=0,ws=0,wp=0;
- for(const t of TASKS.filter(x=>x.classroom_id===rid)){const s=subOf(t,uid);if(s&&s.mark!=null){g+=s.mark;o+=t.total;n++;ws+=t.weight;wp+=t.weight*s.mark/t.total}}
+function stuMarks(rid,uid,from){let g=0,o=0,n=0,ws=0,wp=0;
+ for(const t of TASKS.filter(x=>x.classroom_id===rid)){const s=subOf(t,uid);if(s&&s.mark!=null&&(!from||new Date(s.marked_at)>=from)){g+=s.mark;o+=t.total;n++;ws+=t.weight;wp+=t.weight*s.mark/t.total}}
  return{g,o,n,pct:ws?wp/ws*100:null}}
 const fmtM=v=>n=>`${+n.g.toFixed(2)} / ${+n.o.toFixed(2)} · ${n.pct.toFixed(1)}% weighted · ${n.n} marked`;
 function marksTaskForm(mg){
@@ -326,6 +331,92 @@ function marksView(){
  }
  return h;
 }
+// ==== ANALYTICS METRICS ====
+// Attendance: only ENDED sessions count; a student counts only for sessions that started on/after their approval date.
+// Missing data is null (shown as "No data"), never 0. Ungraded work is excluded from averages.
+const mkey=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+const enrolDate=m=>new Date(m.approved_at||m.created_at||0);
+const pctOf=(a,b)=>b>0?a/b*100:null;
+const rangeFrom=r=>r==='all'?null:r==='year'?new Date(new Date().getFullYear(),0,1):new Date(Date.now()-(+r)*864e5);
+const inR=(t,from)=>!from||new Date(t)>=from;
+const endedSessions=(rid,from)=>S.filter(s=>s.classroom_id===rid&&!s.live&&inR(s.started_at,from));
+const eligible=s=>M.filter(m=>m.classroom_id===s.classroom_id&&m.status==='approved'&&m.role!=='teacher'&&enrolDate(m)<=new Date(s.started_at));
+function sessStat(s){const ids=eligible(s).map(m=>m.user_id),pr=ids.filter(u=>A.some(a=>a.session_id===s.id&&a.user_id===u));return{s,eligible:ids.length,present:pr.length,rate:pctOf(pr.length,ids.length),eligibleIds:ids,presentIds:pr}}
+function stuAtt(uid,rid,from){let e=0,p=0;for(const s of endedSessions(rid,from)){const st=sessStat(s);if(st.eligibleIds.includes(uid)){e++;if(st.presentIds.includes(uid))p++}}return{eligible:e,present:p,rate:pctOf(p,e)}}
+function roomAtt(rid,from){let e=0,p=0;for(const s of endedSessions(rid,from)){const st=sessStat(s);e+=st.eligible;p+=st.present}return{eligible:e,present:p,rate:pctOf(e?p:0,e)}}
+function taskStat(t){const sub=SUBS.filter(x=>x.task_id===t.id),gr=sub.filter(x=>x.mark!=null),ps=gr.map(x=>x.mark/t.total*100);return{submitted:sub.length,graded:gr.length,pending:sub.length-gr.length,avg:ps.length?ps.reduce((a,b)=>a+b,0)/ps.length:null,ps}}
+const BINS=[['0-39%',0,40],['40-59%',40,60],['60-74%',60,75],['75-89%',75,90],['90-100%',90,101]];
+const dist=ps=>BINS.map(([l,a,b])=>({l,v:ps.filter(v=>v>=a&&v<b).length}));
+// ==== END METRICS ====
+const f1=v=>v==null?'No data':v.toFixed(1)+'%';
+const card=(v,l,n)=>`<div class="card stat"><div class="num">${v}</div><div class="sub">${l}</div>${n?`<div class="sub" style="font-size:.75rem;margin-top:4px">${n}</div>`:''}</div>`;
+const cards=l=>`<div class="stats">${l.join('')}</div>`;
+function bars(items,max){if(!items.some(i=>i.v!=null))return '<div class="sub">No data in this range.</div>';const mx=max||Math.max(...items.map(i=>i.v||0),1);
+ return `<div class="chart" role="img" aria-label="${esc(items.map(i=>i.l+': '+(i.v==null?'no data':(i.t||i.v))).join('; '))}">${items.map(i=>`<div class="col"><small>${i.v==null?'-':esc(i.t||i.v)}</small><div class="b" style="height:${i.v==null?0:Math.max(2,i.v/mx*100)}%"></div><small>${esc(i.l)}</small></div>`).join('')}</div>`}
+const tbl=(h,rows)=>rows.length?`<div style="overflow-x:auto"><table class="tb"><thead><tr>${h.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`:'<div class="sub">No data in this range.</div>';
+const note=t=>`<p class="sub" style="margin:6px 0 14px">${t}</p>`;
+const NOTTRACKED='Not tracked yet';
+function myPanel(from,room){
+ const rs=R.filter(r=>appr(r).includes(me.id)&&(room==='all'||r.id===room));anCsv={name:'my-progress.csv',rows:[['Classroom','Date','Class','Attendance']]};let h='';
+ for(const r of rs){const at=stuAtt(me.id,r.id,from),mk=stuMarks(r.id,me.id,from);
+  const hist=endedSessions(r.id,from).filter(s=>eligible(s).some(m=>m.user_id===me.id)).sort((a,b)=>b.started_at.localeCompare(a.started_at));
+  const marked=TASKS.filter(t=>t.classroom_id===r.id).map(t=>({t,s:subOf(t,me.id)})).filter(x=>x.s&&x.s.mark!=null&&inR(x.s.marked_at,from)).sort((a,b)=>String(a.s.marked_at).localeCompare(String(b.s.marked_at)));
+  const pend=TASKS.filter(t=>t.classroom_id===r.id).filter(t=>{const s=subOf(t,me.id);return s&&s.mark==null}).length;
+  hist.forEach(s=>anCsv.rows.push([r.name,dday(s.started_at),s.name,presentIds(s).includes(me.id)?'Present':'Absent']));
+  h+=`<h3 style="margin:18px 0 8px">${esc(r.name)}</h3>${cards([card(f1(at.rate),'Attendance rate',at.eligible?`${at.present} of ${at.eligible} classes`:'No ended classes yet'),card(f1(mk.pct),'Weighted marks',mk.n?`${mk.n} problems marked`:'Nothing marked yet'),card(pend,'Awaiting marking','Submitted, not marked'),card(NOTTRACKED,'Course completion','No completion data exists yet')])}
+  <div class="card"><h3>Performance over time</h3>${note('Each bar is one marked problem: mark ÷ total, in the order marked.')}${bars(marked.map(x=>({l:x.t.title.slice(0,12),v:x.s.mark/x.t.total*100,t:(x.s.mark/x.t.total*100).toFixed(0)+'%'})),100)}</div>
+  <div class="card"><h3>Session history</h3>${tbl(['Date','Class','Attendance'],hist.map(s=>[dday(s.started_at),esc(s.name),presentIds(s).includes(me.id)?'Present':'Absent']))}</div>`}
+ return (h||'<div class="card sub">You are not enrolled in a classroom yet.</div>')+'<div class="card"><h3>Achievements</h3><p class="sub">Your achievement history will appear here once Achievements is released.</p></div>';
+}
+function classPanel(from,rid){
+ const r=R.find(x=>x.id===rid);if(!r)return '<div class="card sub">Choose a classroom.</div>';
+ const ss=endedSessions(rid,from).sort((a,b)=>b.started_at.localeCompare(a.started_at)),ra=roomAtt(rid,from),ts=TASKS.filter(t=>t.classroom_id===rid),sts=ts.map(taskStat);
+ const ids=appr(r).sort((a,b)=>byName(P[a]||{},P[b]||{})),allp=sts.flatMap(x=>x.ps),pend=sts.reduce((n,x)=>n+x.pending,0);
+ anCsv={name:(r.name||'class')+'-analytics.csv',rows:[['Session date','Class','Eligible students','Present','Attendance %'],...ss.map(s=>{const t=sessStat(s);return[dday(s.started_at),s.name,t.eligible,t.present,t.rate==null?'':t.rate.toFixed(1)]}),[],['Student','Institution','Present','Eligible classes','Attendance %','Weighted marks %','Problems marked'],...ids.map(i=>{const a=stuAtt(i,rid,from),m=stuMarks(rid,i,from);return[nm(i),ins(i),a.present,a.eligible,a.rate==null?'':a.rate.toFixed(1),m.pct==null?'':m.pct.toFixed(1),m.n]})]};
+ return cards([card(ss.length,'Classes completed','Ended sessions in range'),card(live(r)?1:0,'Live now'),card(f1(ra.rate),'Average attendance',ra.eligible?`${ra.present} of ${ra.eligible} student-sessions`:'No ended classes yet'),card(NOTTRACKED,'Scheduled / cancelled','Needs the Schedule page'),card(ts.length,'Problems posted'),card(pend,'Pending grading','Submitted, not marked')])
+ +`<div class="card"><h3>Attendance by session</h3>${note('Rate = students present ÷ students enrolled when the class started. Live classes are excluded.')}${bars(ss.slice(0,12).reverse().map(s=>{const t=sessStat(s);return{l:dday(s.started_at).slice(0,6),v:t.rate,t:t.rate==null?'':t.rate.toFixed(0)+'%'}}),100)}${tbl(['Date','Class','Present','Eligible','Rate'],ss.map(s=>{const t=sessStat(s);return[dday(s.started_at),esc(s.name),t.present,t.eligible,f1(t.rate)]}))}</div>`
+ +`<div class="card"><h3>Students</h3>${note('Weighted marks use each problem\'s weight and only problems marked for the student.')}${tbl(['Student','Institution','Attendance','Weighted marks'],ids.map(i=>{const a=stuAtt(i,rid,from),m=stuMarks(rid,i,from);return[esc(nm(i)),esc(ins(i)),a.eligible?`${a.present}/${a.eligible} (${f1(a.rate)})`:'No data',m.n?`${f1(m.pct)} (${m.n} marked)`:'No data']}))}</div>`
+ +`<div class="card"><h3>Problems and score distribution</h3>${tbl(['Problem','Weight','Submitted','Graded','Pending','Average'],ts.map((t,i)=>[esc(t.title),+t.weight,sts[i].submitted,sts[i].graded,sts[i].pending,f1(sts[i].avg)]))}<h3 style="margin-top:14px">Score distribution (all graded work)</h3>${allp.length?bars(dist(allp)):'<div class="sub">No graded work yet.</div>'}</div>`;
+}
+function teachPanel(from){
+ const rs=R.filter(canManage),ids=new Set(rs.map(r=>r.id)),mineP=x=>x.author_id===me.id;
+ const conducted=S.filter(s=>ids.has(s.classroom_id)&&!s.live&&inR(s.started_at,from)).length,tids=new Set(TASKS.filter(t=>ids.has(t.classroom_id)).map(t=>t.id)),pend=SUBS.filter(x=>x.mark==null&&tids.has(x.task_id)).length;
+ const cnt=(arr,key,u)=>arr.filter(x=>(!u||x.author_id===u)&&inR(x[key],from)).length;
+ const rows=rs.map(r=>{const st=appr(r),ma=st.map(i=>stuMarks(r.id,i,from)).filter(x=>x.n),ra=roomAtt(r.id,from);return[esc(r.name),st.length,endedSessions(r.id,from).length,f1(ra.rate),ma.length?f1(ma.reduce((a,x)=>a+x.pct,0)/ma.length)+` (${ma.length} students)`:'No data']});
+ anCsv={name:'teaching-activity.csv',rows:[['Classroom','Students','Classes','Attendance %','Average weighted marks'],...rs.map(r=>{const ma=appr(r).map(i=>stuMarks(r.id,i,from)).filter(x=>x.n),ra=roomAtt(r.id,from);return[r.name,appr(r).length,endedSessions(r.id,from).length,ra.rate==null?'':ra.rate.toFixed(1),ma.length?(ma.reduce((a,x)=>a+x.pct,0)/ma.length).toFixed(1):'']})]};
+ let h=cards([card(conducted,'Classes conducted','Ended sessions in your classrooms'),card(pend,'Pending grading','Submitted, not marked'),card(cnt(TASKS,'created_at',me.id),'Problems posted by you'),card(cnt(RES,'created_at',me.id),'Resources published by you'),card(cnt(PRES,'created_at',me.id),'Presentations uploaded by you'),card(cnt(REC,'updated_at',me.id),'Class records uploaded by you'),card(cnt(BR,'created_at',me.id),'Whiteboards saved by you'),card(NOTTRACKED,'Student feedback','No feedback collection exists yet')])
+  +`<div class="card"><h3>Progress by classroom</h3>${tbl(['Classroom','Students','Classes','Attendance','Average weighted marks'],rows)}</div>`;
+ if(isAuth()){const tl=Object.values(P).filter(u=>u.role!=='student').sort(byName);
+  h+=`<div class="card"><h3>Activity by teacher (all classrooms)</h3>${tbl(['Teacher','Problems','Resources','Presentations','Records','Whiteboards'],tl.map(u=>[esc(u.name),cnt(TASKS,'created_at',u.id),cnt(RES,'created_at',u.id),cnt(PRES,'created_at',u.id),cnt(REC,'updated_at',u.id),cnt(BR,'created_at',u.id)]))}</div>`}
+ return h;
+}
+function orgPanel(from){
+ const ended=S.filter(s=>!s.live&&inR(s.started_at,from)),stu=Object.values(P).filter(u=>u.role==='student');
+ const enrolled=new Set(M.filter(m=>m.status==='approved'&&m.role!=='teacher').map(m=>m.user_id)),newE=M.filter(m=>m.status==='approved'&&m.role!=='teacher'&&inR(m.approved_at||m.created_at,from)).length;
+ const active=new Set();let e=0,p=0;const mon={};
+ const mm=k=>mon[k]||(mon[k]={k,cls:0,e:0,p:0,enr:0,res:0,pres:0,rec:0,bd:0});
+ for(const s of ended){const st=sessStat(s),x=mm(mkey(s.started_at));x.cls++;x.e+=st.eligible;x.p+=st.present;e+=st.eligible;p+=st.present;st.presentIds.forEach(u=>active.add(u))}
+ M.filter(m=>m.status==='approved'&&m.role!=='teacher'&&inR(m.approved_at||m.created_at,from)).forEach(m=>mm(mkey(m.approved_at||m.created_at)).enr++);
+ RES.filter(x=>inR(x.created_at,from)).forEach(x=>mm(mkey(x.created_at)).res++);PRES.filter(x=>inR(x.created_at,from)).forEach(x=>mm(mkey(x.created_at)).pres++);
+ REC.filter(x=>inR(x.updated_at,from)).forEach(x=>mm(mkey(x.updated_at)).rec++);BR.filter(x=>inR(x.created_at,from)).forEach(x=>mm(mkey(x.created_at)).bd++);
+ const ms=Object.values(mon).sort((a,b)=>a.k.localeCompare(b.k)),rate=pctOf(p,e);
+ anCsv={name:'organization-monthly-report.csv',rows:[['Month','Classes conducted','Attendance %','New enrollments','Resources','Presentations','Class records','Whiteboards'],...ms.map(x=>[x.k,x.cls,x.e?(x.p/x.e*100).toFixed(1):'',x.enr,x.res,x.pres,x.rec,x.bd])]};
+ return cards([card(enrolled.size,'Unique enrolled students','Distinct students with an approved enrollment'),card(newE,'New enrollments','Approved in range'),card(active.size,'Active students','Attended at least one class in range'),card(ended.length,'Classes conducted','Ended sessions in range'),card(f1(rate),'Average attendance',e?`${p} of ${e} student-sessions`:'No ended classes in range'),card(stu.length,'Student accounts','All registered students'),card(RES.filter(x=>inR(x.created_at,from)).length,'Resources published'),card(PRES.filter(x=>inR(x.created_at,from)).length,'Presentations uploaded'),card(TASKS.filter(x=>inR(x.created_at,from)).length,'Problems posted'),card(NOTTRACKED,'Workshops, outreach, certificates, course completion','No data source exists yet')])
+ +`<div class="card"><h3>Attendance trend by month</h3>${note('Monthly attendance = students present ÷ students enrolled at class start, over ended classes.')}${bars(ms.map(x=>({l:x.k,v:x.e?x.p/x.e*100:null,t:x.e?(x.p/x.e*100).toFixed(0)+'%':''})),100)}</div>`
+ +`<div class="card"><h3>Monthly report</h3>${note('Semester reports need semester dates, which are not configured yet. Use the year or all-time range for annual figures.')}${tbl(['Month','Classes','Attendance','New enrollments','Resources','Presentations','Records','Whiteboards'],ms.map(x=>[x.k,x.cls,x.e?f1(x.p/x.e*100):'No data',x.enr,x.res,x.pres,x.rec,x.bd]))}</div>`;
+}
+function anView(){
+ const tabs=[];if(R.some(r=>appr(r).includes(me.id)))tabs.push(['my','My progress']);
+ if(R.some(canManage)){tabs.push(['cls','Class analytics']);tabs.push(['tch','Teaching activity'])}if(isAuth())tabs.push(['org','Organization']);
+ if(!tabs.length)return '<h2>Analytics</h2><div class="card sub">Analytics appear once you join a classroom.</div>';
+ const t=tabs.some(x=>x[0]===anTab)?anTab:tabs[0][0],from=rangeFrom(an.range);
+ const rooms=t==='my'?R.filter(r=>appr(r).includes(me.id)):t==='cls'?R.filter(canManage):[];
+ let room=an.room;if(t==='cls'&&!rooms.some(r=>r.id===room))room=rooms[0]?rooms[0].id:'';if(t==='my'&&room!=='all'&&!rooms.some(r=>r.id===room))room='all';
+ anCsv=null;const body=t==='my'?myPanel(from,room):t==='cls'?classPanel(from,room):t==='tch'?teachPanel(from):orgPanel(from);
+ const opts=[['30','Last 30 days'],['90','Last 90 days'],['180','Last 6 months'],['year','This year'],['all','All time']];
+ return `<h2>Analytics</h2><div class="tabs row" style="margin-bottom:12px">${tabs.map(x=>`<button class="small ghost" data-act="antab" data-v="${x[0]}" aria-pressed="${t===x[0]}">${x[1]}</button>`).join('')}</div>
+ <div class="row" style="margin-bottom:14px"><select data-an="range" style="width:auto" aria-label="Date range">${opts.map(o=>`<option value="${o[0]}"${an.range===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>${rooms.length?`<select data-an="room" style="width:auto" aria-label="Classroom">${t==='my'?`<option value="all"${room==='all'?' selected':''}>All classrooms</option>`:''}${rooms.map(r=>`<option value="${r.id}"${room===r.id?' selected':''}>${esc(r.name)}</option>`).join('')}</select>`:''}${anCsv&&t!=='my'?'<button class="small" data-act="exportcsv">Export CSV</button>':''}</div>${body}`;
+}
 function resView(){
  const mg=R.filter(canManage),vis=R.filter(mine);
  const f=mg.length?`<div class="card"><h2>Add a resource</h2><label for="xr">Classroom</label><select id="xr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
@@ -338,7 +429,7 @@ function resView(){
 function page(){
  const m=MENU.find(x=>x[0]===tab)||MENU[0];
  if(tab==='dash')return dashView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();
- if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='marks')return marksView();if(tab==='admin'&&isAuth())return adminView();
+ if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='marks')return marksView();if(tab==='analytics')return anView();if(tab==='admin'&&isAuth())return adminView();
  return `<h2>${esc(m[2])}</h2><div class="card"><p>This page is not available yet.</p><p class="sub">It is being moved to the shared database and will return in an update.</p></div>`;
 }
 function render(){const a=$('app');if(me&&bd){a.innerHTML=editorHTML();initCanvas();return}
@@ -370,6 +461,8 @@ const ACT={
  async rename(el){const name=val('cn');if(!name)return;await db(sb.from('class_sessions').update({name}).eq('id',el.dataset.id));say('Class name saved.');await refresh()},
  async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
  nav(){navOpen=!navOpen;render()},
+ antab(el){anTab=el.dataset.v;render()},
+ exportcsv(){if(!anCsv)return;const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';saveBlob('\ufeff'+anCsv.rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv;charset=utf-8',anCsv.name)},
  async addtask(){const cid=$('tr').value,title=val('tt'),body=val('tx'),total=parseFloat($('tm').value),weight=parseFloat($('tw').value||'1');
   if(!title)return say('Write a title.');if(!body&&!imgDraft.task)return say('Write the problem or add a picture.');
   if(!(total>0))return say('Enter the total marks.');if(!(weight>0))return say('The weight must be more than 0.');
@@ -431,6 +524,7 @@ document.addEventListener('click',async ev=>{
 document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.dataset.d){if(d.open)dopen.add(d.dataset.d);else dopen.delete(d.dataset.d)}},true);
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.closest&&ev.target.closest('.auth')&&ev.target.tagName==='INPUT'){const b=document.querySelector('.auth button[data-act]');if(b)b.click()}});
 document.addEventListener('change',async ev=>{
+ const an2=ev.target.closest&&ev.target.closest('[data-an]');if(an2){an[an2.dataset.an]=an2.value;render();return}
  if(ev.target.matches&&ev.target.matches('input[data-img]'))return pickImg(ev.target);
  const mr=ev.target.closest('[data-mrole]');
  if(mr){try{await db(sb.rpc('set_member_role',{cid:mr.dataset.id,uid:mr.dataset.mrole,new_role:mr.value}));say('Role updated.');await refresh()}catch(e){say(e.message)}return}
