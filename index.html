@@ -83,6 +83,20 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border:1px solid v
 .chart .b{width:100%;background:var(--acc);border-radius:6px 6px 0 0}
 .chart small{font-size:.7rem;color:var(--mut);text-align:center;overflow-wrap:anywhere}
 .tb{width:100%;border-collapse:collapse;font-size:.9rem}.tb th,.tb td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}.tb th{color:var(--mut);font-weight:600}
+.hallpage{--card:#141c44;--line:#2b3270;--ink:#e8ebff;--mut:#a3abdc;--bg:#0b1230;--acc:#8fa0ff;--on:#0b1230;--gold:#e6b94a;background:#0b1230 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cg fill='%23e6b94a' opacity='.35'%3E%3Ccircle cx='30' cy='40' r='1.6'/%3E%3Ccircle cx='90' cy='90' r='1.2'/%3E%3Ccircle cx='150' cy='50' r='1.8'/%3E%3Ccircle cx='210' cy='110' r='1.2'/%3E%3Ccircle cx='60' cy='200' r='1.4'/%3E%3Ccircle cx='180' cy='220' r='1.6'/%3E%3C/g%3E%3Cpolyline points='30,40 90,90 150,50 210,110' fill='none' stroke='%238fa0ff' stroke-width='.6' opacity='.25'/%3E%3C/svg%3E");color:var(--ink);border-radius:18px;padding:22px;border:1px solid #232c63}
+.hallpage h2,.hallpage h3{color:#f4f0e2}.hall-head{padding:6px 2px 18px}.hall-head h2{font-size:1.8rem;margin:0}.hall-head .tag-line{color:var(--gold);letter-spacing:.04em;margin:4px 0 16px}
+.hall-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.hall-stats .card{margin:0;background:rgba(20,28,68,.8)}
+.hallpage .card .num{color:var(--gold)}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.ach-card{all:unset;box-sizing:border-box;cursor:pointer;background:#141c44;border:1px solid #2b3270;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:6px;align-items:center;text-align:center;color:#e8ebff;transition:border-color .15s,transform .15s}
+.ach-card:hover{border-color:#e6b94a;transform:translateY(-2px)}.ach-card:focus-visible{outline:3px solid #e6b94a;outline-offset:2px}
+.ach-card .nm{font-family:Georgia,serif;font-weight:600;font-size:1.02rem}.ach-card .ds{font-size:.82rem;color:#a3abdc;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ach-card .st{font-size:.8rem;color:#a3abdc;width:100%}.ach-card.earned .st{color:#e6b94a}
+.pbar{height:6px;background:#232c63;border-radius:6px;overflow:hidden;margin:4px 0}.pbar i{display:block;height:100%;background:#e6b94a}
+.drawer-back{position:fixed;inset:0;z-index:80;display:flex;justify-content:flex-end;background:rgba(5,8,25,.72)}
+.drawer-bg{position:absolute;inset:0}.drawer{position:relative;width:min(540px,100%);height:100%;overflow:auto;background:#0f1838;color:#e8ebff;padding:22px;border-left:1px solid #2b3270;--card:#141c44;--line:#2b3270;--ink:#e8ebff;--mut:#a3abdc;--bg:#0b1230;--acc:#8fa0ff;--on:#0b1230}
+.drawer h2{color:#f4f0e2}.drawer .badgebig{display:flex;justify-content:center;margin:8px 0 12px}
+.tl{border-left:2px solid #2b3270;margin-left:8px;padding-left:16px}.tl>div{position:relative;padding:8px 0}.tl>div:before{content:"";position:absolute;left:-23px;top:14px;width:10px;height:10px;border-radius:50%;background:#e6b94a}
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
 @media (max-width:759px){.cols{grid-template-columns:1fr}}
 #toast[hidden]{display:none}
@@ -100,7 +114,7 @@ const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},achOpen=null,anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -133,11 +147,11 @@ function authView(){
  <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
-const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','','Analytics'],['ach','🏆','Achievements',1],['admin','⚙️','Administration',0,1]];
+const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','','Analytics'],['ach','','Achievements'],['admin','⚙️','Administration',0,1]];
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
- <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div></aside><main>${body}</main></div>`;
+ <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 12 Oct 2026 · Achievements</div></aside><main>${body}</main></div>`;
 }
 function dashView(){
  const rs=R.filter(mine),lv=rs.filter(live),held=rs.reduce((n,r)=>n+S.filter(s=>s.classroom_id===r.id&&!s.live).length,0),mg=rs.filter(canManage);
@@ -417,6 +431,108 @@ function anView(){
  return `<h2>Analytics</h2><div class="tabs row" style="margin-bottom:12px">${tabs.map(x=>`<button class="small ghost" data-act="antab" data-v="${x[0]}" aria-pressed="${t===x[0]}">${x[1]}</button>`).join('')}</div>
  <div class="row" style="margin-bottom:14px"><select data-an="range" style="width:auto" aria-label="Date range">${opts.map(o=>`<option value="${o[0]}"${an.range===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>${rooms.length?`<select data-an="room" style="width:auto" aria-label="Classroom">${t==='my'?`<option value="all"${room==='all'?' selected':''}>All classrooms</option>`:''}${rooms.map(r=>`<option value="${r.id}"${room===r.id?' selected':''}>${esc(r.name)}</option>`).join('')}</select>`:''}${anCsv&&t!=='my'?'<button class="small" data-act="exportcsv">Export CSV</button>':''}</div>${body}`;
 }
+// ==== HALL OF ACHIEVEMENTS ====
+const CATS=['Academic Excellence','Astronomy Exploration','Consistency and Participation','Research and Projects','Leadership and Community','Cassiopeia Honors'];
+const TIER={bronze:['#c08a52'],silver:['#d3d9e2'],gold:['#e6b94a'],platinum:['#e9f1f6']};
+const LV={bronze:'Bronze',silver:'Silver',gold:'Gold',platinum:'Platinum'},LVO=['bronze','silver','gold','platinum'];
+const MLAB={classes_attended:'Classes attended',eligible_sessions:'Completed classes you are enrolled in',attendance_rate:'Attendance rate',problems_marked:'Solutions marked',weighted_marks:'Weighted marks',presentations_uploaded:'Presentations uploaded',resources_added:'Resources published',records_uploaded:'Class records uploaded',boards_saved:'Whiteboards saved'};
+const PCTM=['attendance_rate','weighted_marks'],STUM=['classes_attended','eligible_sessions','attendance_rate','problems_marked','weighted_marks'];
+const MGO={classes_attended:['rooms','Open Classes'],eligible_sessions:['rooms','Open Classes'],attendance_rate:['rooms','Open Classes'],problems_marked:['marks','Open Marks & Assessments'],weighted_marks:['marks','Open Marks & Assessments'],presentations_uploaded:['pres','Open Presentations'],resources_added:['res','Open Resources'],records_uploaded:['records','Open Class Records'],boards_saved:['board','Open Whiteboard']};
+const fmtV=(m,v)=>v==null?'No data':PCTM.includes(m)?(+v).toFixed(1)+'%':String(+v);
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hstr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function badge(d,st,px){
+ const on=st==='earned',col=on?(TIER[d.level]||['#e6b94a'])[0]:'#6b7499',star=on?'#f4d98b':'#8d96bb',r=rng(hstr(d.code)),pts=[];
+ for(let i=0;i<6;i++){const a=r()*6.283,rad=8+r()*20;pts.push([50+Math.cos(a)*rad,46+Math.sin(a)*rad])}
+ pts.sort((a,b)=>a[0]-b[0]);
+ const hex=q=>[0,1,2,3,4,5].map(i=>{const a=Math.PI/3*i+Math.PI/6;return(50+q*Math.cos(a)).toFixed(1)+','+(50+q*Math.sin(a)).toFixed(1)}).join(' ');
+ const pips=d.level?LVO.indexOf(d.level)+1:0;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="${px}" height="${px}" role="img" aria-label="${esc(d.name)} badge"><polygon points="${hex(47)}" fill="#0f1838" stroke="${col}" stroke-width="3"${on?'':' stroke-dasharray="4 3"'}/><polygon points="${hex(40)}" fill="none" stroke="${col}" stroke-width=".8" opacity=".7"/><polyline points="${pts.map(q=>q.map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${col}" stroke-width="1" opacity=".8"/>${pts.map(q=>`<circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="2.3" fill="${star}"/>`).join('')}${Array.from({length:pips},(_,i)=>`<circle cx="${50+(i-(pips-1)/2)*8}" cy="80" r="2.4" fill="${col}"/>`).join('')}${st==='revoked'?'<line x1="22" y1="22" x2="78" y2="78" stroke="#ff8a80" stroke-width="3"/>':''}</svg>`;
+}
+function ratio(p){if(!p||p.target==null||+p.target<=0||p.value==null)return 0;let x=Math.min(1,+p.value/+p.target);if(p.and_metric&&p.and_target!=null&&+p.and_target>0)x=Math.min(x,p.and_value==null?0:Math.min(1,+p.and_value/+p.and_target));return x}
+function achState(d){const a=ACH.aw.find(x=>x.def_id===d.id&&x.user_id===me.id),p=ACH.prog[d.id];
+ if(a)return{s:a.status==='active'?'earned':'revoked',a,p};
+ if(d.valid_until&&new Date(d.valid_until)<new Date())return{s:'expired',p};
+ const q=ratio(p);return{s:q>0?'progress':'locked',p,q}}
+const lvlTxt=d=>d.level?LV[d.level]:'Single level';
+function cardHTML(x){const d=x.d;let st;
+ if(x.s==='earned')st=`Earned ${dday(x.a.awarded_at)}`;
+ else if(x.s==='revoked')st='Revoked';else if(x.s==='expired')st='Expired';
+ else if(x.s==='progress'){const p=x.p;st=`<div class="pbar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(x.q*100)}"><i style="width:${x.q*100}%"></i></div>${esc(MLAB[d.rule.metric]||'Progress')}: ${fmtV(d.rule.metric,p.value)} of ${fmtV(d.rule.metric,p.target)}`}
+ else st=d.kind==='manual'?'Awarded by authors after verification':'Not started';
+ return `<button class="ach-card ${x.s}" data-act="achopen" data-id="${d.id}" aria-label="${esc(d.name)}, ${esc(lvlTxt(d))}, ${x.s}">${badge(d,x.s,84)}<div class="nm">${esc(d.name)}</div><div class="sub" style="color:#a3abdc">${esc(d.category)} · ${esc(lvlTxt(d))}</div><div class="ds">${esc(d.description)}</div><div class="st">${st}</div></button>`}
+function galleryHTML(){
+ let l=ACH.defs.filter(d=>d.active||ACH.aw.some(a=>a.def_id===d.id&&a.user_id===me.id)).map(d=>({d,...achState(d)}));
+ if(!l.length)return '<div class="card sub">No achievements have been set up yet.</div>';
+ const q=achF.q.trim().toLowerCase();
+ if(q)l=l.filter(x=>(x.d.name+' '+x.d.description+' '+x.d.category+' '+(x.d.level||'')).toLowerCase().includes(q));
+ if(achF.cat!=='all')l=l.filter(x=>x.d.category===achF.cat);
+ if(achF.st==='earned')l=l.filter(x=>x.s==='earned');if(achF.st==='progress')l=l.filter(x=>x.s==='progress');
+ const lo=x=>LVO.indexOf(x.d.level),nmc=(a,b)=>a.d.name.localeCompare(b.d.name)||lo(a)-lo(b);
+ l.sort(achF.sort==='name'?nmc:achF.sort==='points'?(a,b)=>b.d.points-a.d.points||nmc(a,b):achF.sort==='category'?(a,b)=>a.d.category.localeCompare(b.d.category)||nmc(a,b):(a,b)=>String(b.a?b.a.awarded_at:'').localeCompare(String(a.a?a.a.awarded_at:''))||a.d.category.localeCompare(b.d.category)||nmc(a,b));
+ if(!l.length)return '<div class="card sub">No achievements match your search or filters.</div>';
+ return `<div class="sub" style="margin-bottom:8px">${l.length} achievement${l.length>1?'s':''}</div><div class="ach-grid">${l.map(cardHTML).join('')}</div>`;
+}
+function timelineHTML(){
+ const ev=[];ACH.aw.filter(a=>a.user_id===me.id&&a.status==='active').forEach(a=>{const d=ACH.defs.find(x=>x.id===a.def_id);if(d)ev.push({t:a.awarded_at,k:'Achievement',n:d.name+(d.level?' ('+LV[d.level]+')':''),c:d.category})});
+ ACH.certs.forEach(c=>ev.push({t:c.issued_at,k:'Certificate',n:c.title,c:'Certificates'}));
+ let l=ev.filter(e=>(!tlF.from||e.t.slice(0,10)>=tlF.from)&&(!tlF.to||e.t.slice(0,10)<=tlF.to)&&(tlF.cat==='all'||e.c===tlF.cat)).sort((a,b)=>b.t.localeCompare(a.t));
+ if(!ev.length)return '<div class="card sub">Your timeline will fill in as you earn achievements.</div>';
+ if(!l.length)return '<div class="card sub">Nothing matches these filters.</div>';
+ return `<div class="tl">${l.map(e=>`<div><b>${esc(e.n)}</b><div class="sub">${esc(e.k)} · ${esc(e.c)} · ${dday(e.t)}</div></div>`).join('')}</div>`;
+}
+function nextMilestone(){
+ const stu=M.some(m=>m.user_id===me.id&&m.status==='approved'&&m.role==='student'),tch=me.role==='teacher'||me.role==='author';
+ const c=ACH.defs.filter(d=>d.active&&d.kind==='auto'&&!ACH.aw.some(a=>a.def_id===d.id&&a.user_id===me.id)&&(STUM.includes(d.rule.metric)?stu:tch)).map(d=>({d,p:ACH.prog[d.id],q:ratio(ACH.prog[d.id])})).filter(x=>x.q<1);
+ if(!c.length)return '<p class="sub">There is no suggested milestone right now. Joining a classroom unlocks the achievements you can work toward.</p>';
+ c.sort((a,b)=>b.q-a.q||a.d.points-b.d.points);const x=c[0],m=x.d.rule.metric,go=MGO[m]||['dash','Open Dashboard'];
+ const lines=[[m,x.p&&x.p.value,x.d.rule.min]];if(x.d.rule.and)lines.push([x.d.rule.and.metric,x.p&&x.p.and_value,x.d.rule.and.min]);
+ return `<div class="row" style="gap:16px;align-items:flex-start">${badge(x.d,'locked',72)}<div class="grow"><h3>${esc(x.d.name)} <span class="sub">${esc(lvlTxt(x.d))}</span></h3><p class="sub" style="margin:4px 0 8px">${esc(x.d.requirements)}</p><div class="pbar"><i style="width:${x.q*100}%"></i></div>${lines.map(l=>`<div class="sub">${esc(MLAB[l[0]]||l[0])}: ${fmtV(l[0],l[1])} of ${fmtV(l[0],l[2])}</div>`).join('')}<div style="margin-top:10px"><button class="small" data-act="tab" data-v="${go[0]}">${go[1]}</button></div></div></div>`;
+}
+function drawerHTML(){
+ const d=ACH.defs.find(x=>x.id===achOpen);if(!d)return '';const x=achState(d),a=x.a,cert=a?ACH.certs.find(c=>c.award_id===a.id):null;let body='';
+ const ev=a&&a.evidence&&a.evidence.metric?`<div class="sub">Evidence recorded at award time: ${esc(MLAB[a.evidence.metric]||a.evidence.metric)} was ${fmtV(a.evidence.metric,a.evidence.value)}.</div>`:'';
+ if(x.s==='earned')body=`<div class="card"><b>Earned ${dts(a.awarded_at)}</b><div class="sub">Issued by ${esc(d.issuer)}${a.method==='manual'?' · awarded by '+esc(nm(a.awarded_by)):' · awarded automatically from your records'}</div><div class="sub">Points awarded: ${a.points}</div>${ev}${a.note?`<div class="sub">Note: ${esc(a.note)}</div>`:''}<div class="sub">Certificate: ${cert?esc(cert.code)+' ('+esc(cert.status)+')':'none issued for this award'}</div></div><div style="margin:12px 0"><button data-act="achcard" data-id="${d.id}">Download achievement card</button><p class="sub" style="margin-top:6px">The card shows only the badge, title, your name and the date. No grades or attendance.</p></div>`;
+ else if(x.s==='revoked')body=`<div class="card"><b>This award was revoked on ${dts(a.revoked_at)}.</b>${a.revoke_reason?`<div class="sub">Reason: ${esc(a.revoke_reason)}</div>`:''}</div>`;
+ else if(x.s==='expired')body='<div class="card"><b>This achievement is no longer available.</b></div>';
+ else{const p=x.p,rows=[];if(d.kind==='auto'&&p){rows.push([d.rule.metric,p.value,p.target]);if(p.and_metric)rows.push([p.and_metric,p.and_value,p.and_target])}
+  body=d.kind==='manual'?'<div class="card"><b>Awarded manually</b><div class="sub">An author awards this after the evidence is verified. No automatic progress is tracked.</div></div>':`<div class="card"><b>Your progress</b>${x.q>0?`<div class="pbar"><i style="width:${x.q*100}%"></i></div>`:''}${rows.map(r=>`<div class="sub">${esc(MLAB[r[0]]||r[0])}: ${fmtV(r[0],r[1])} of ${fmtV(r[0],r[2])}</div>`).join('')}</div>`}
+ return `<div class="drawer-back"><div class="drawer-bg" data-act="achclose"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dt"><button id="dclose" class="small ghost" data-act="achclose" style="float:right">Close</button><div class="badgebig">${badge(d,x.s,150)}</div><h2 id="dt" style="text-align:center;margin:0">${esc(d.name)}</h2><p class="sub" style="text-align:center">${esc(d.category)} · ${esc(lvlTxt(d))} · ${d.points} points</p><p>${esc(d.description)}</p><h3 style="margin:12px 0 6px">Requirements</h3><p class="sub" style="margin:0 0 12px">${esc(d.requirements)}${d.evidence_required?' Verified evidence is required.':''}</p>${body}</aside></div>`;
+}
+function adminAch(){
+ if(!isAuth())return '';const people=Object.values(P).sort(byName),defs=ACH.defs.filter(d=>d.active).sort((a,b)=>a.name.localeCompare(b.name)||LVO.indexOf(a.level)-LVO.indexOf(b.level));
+ const aws=ACH.aw.slice().sort((a,b)=>b.awarded_at.localeCompare(a.awarded_at)).slice(0,25);
+ return `<div class="card"><h2>Author controls</h2><h3 style="margin:6px 0">Award an achievement</h3><div class="row"><div class="grow"><label for="aw-u">Person</label><select id="aw-u">${people.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select></div><div class="grow"><label for="aw-d">Achievement</label><select id="aw-d">${defs.map(d=>`<option value="${d.id}">${esc(d.name)}${d.level?' ('+LV[d.level]+')':''}</option>`).join('')}</select></div></div><label for="aw-n">Evidence or note (required for verified achievements)</label><textarea id="aw-n" rows="2"></textarea><div style="margin-top:10px"><button data-act="achaward">Award</button></div>
+ <h3 style="margin:18px 0 6px">Recent awards</h3>${tbl(['Person','Achievement','Date','Method','Status',''],aws.map(a=>{const d=ACH.defs.find(x=>x.id===a.def_id);return[esc(nm(a.user_id)),esc(d?d.name+(d.level?' ('+LV[d.level]+')':''):'?'),dday(a.awarded_at),a.method,a.status,a.status==='active'?`<button class="small ghost" data-act="achrevoke" data-id="${a.id}">Revoke</button>`:esc(a.revoke_reason||'')]}))}
+ <h3 style="margin:18px 0 6px">Audit log</h3>${tbl(['When','Who','Action','Details'],ACH.audit.map(a=>[dts(a.created_at),esc(nm(a.actor)),esc(a.action),esc(JSON.stringify(a.detail).slice(0,90))]))}<p class="sub" style="margin-top:8px">Editing achievement definitions and reviewing award requests are not built yet.</p></div>`;
+}
+function achView(){
+ const wrap=h=>`<div class="hallpage">${h}</div>`;
+ if(ACH.st==='idle'||ACH.st==='loading')return wrap('<div class="hall-head"><h2>Hall of Achievements</h2><p class="tag-line">Every milestone tells a story.</p></div><div class="card sub" role="status">Loading your achievements...</div>');
+ if(ACH.st==='error')return wrap(`<div class="hall-head"><h2>Hall of Achievements</h2></div><div class="card"><p class="err" role="alert">${esc(ACH.err)}</p><p class="sub">If this mentions a missing function or table, database update 5 has not been run yet.</p><button data-act="achretry">Try again</button></div>`);
+ const mineA=ACH.aw.filter(a=>a.user_id===me.id&&a.status==='active'),bal=ACH.led.reduce((n,x)=>n+x.delta,0),nc=ACH.certs.filter(c=>c.status==='valid').length;
+ const sel=(k,o,v)=>`<select data-ach="${k}" style="width:auto" aria-label="${k}">${o.map(x=>`<option value="${x[0]}"${v===x[0]?' selected':''}>${esc(x[1])}</option>`).join('')}</select>`;
+ return wrap(`<div class="hall-head"><h2>Hall of Achievements</h2><p class="tag-line">Every milestone tells a story.</p><div class="hall-stats"><div class="card stat"><div class="num">${mineA.length}</div><div class="sub">Achievements earned</div></div><div class="card stat"><div class="num">${bal}</div><div class="sub">Points balance</div><div class="sub" style="font-size:.72rem">Recognition points, separate from marks</div></div><div class="card stat"><div class="num">${nc}</div><div class="sub">Certificates</div></div><div class="card stat"><div class="sub" style="margin-top:10px"><a href="#timeline" data-act="totl">View achievement timeline</a></div></div></div></div>
+ <div class="card"><h2>Your next milestone</h2>${nextMilestone()}</div>
+ <h2 style="margin-top:20px">Collection</h2><div class="row" style="margin-bottom:12px"><input data-ach="q" type="search" placeholder="Search achievements" aria-label="Search achievements" value="${esc(achF.q)}" style="max-width:260px">${sel('cat',[['all','All categories'],...CATS.map(c=>[c,c])],achF.cat)}${sel('st',[['all','All'],['earned','Earned'],['progress','In progress']],achF.st)}${sel('sort',[['recent','Recently earned'],['name','Name'],['points','Points'],['category','Category']],achF.sort)}</div><div id="achgrid">${galleryHTML()}</div>
+ <h2 id="timeline" style="margin-top:24px">Timeline</h2><div class="row" style="margin-bottom:10px"><div><label for="tl-f">From</label><input id="tl-f" data-tl="from" type="date" value="${tlF.from}" style="width:auto"></div><div><label for="tl-t">To</label><input id="tl-t" data-tl="to" type="date" value="${tlF.to}" style="width:auto"></div><div><label for="tl-c">Category</label><select id="tl-c" data-tl="cat" style="width:auto"><option value="all">All</option>${[...CATS,'Certificates'].map(c=>`<option value="${esc(c)}"${tlF.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></div></div><div id="tlbox">${timelineHTML()}</div>
+ <h2 style="margin-top:24px">Certificate vault</h2>${ACH.certs.length?`<div class="card list">${ACH.certs.map(c=>`<div><div><b>${esc(c.title)}</b><div class="sub">${esc(c.code)} · issued ${dday(c.issued_at)} by ${esc(c.issuer)}</div></div><span class="tag">${esc(c.status)}</span></div>`).join('')}</div><p class="sub">Public verification links are not available yet.</p>`:'<div class="card sub">No certificates have been issued to you yet.</div>'}
+ <div style="margin-top:24px">${adminAch()}</div>${achOpen?drawerHTML():''}`);
+}
+async function achLoad(){
+ ACH.st='loading';render();
+ try{
+  await db(sb.rpc('evaluate_my_achievements'));
+  const q=t=>sb.from(t).select('*');
+  const r=await Promise.all([q('achievement_defs'),q('achievement_awards'),q('points_ledger'),q('certificates'),sb.rpc('my_achievement_progress')]);
+  for(const x of r)if(x.error)throw x.error;
+  ACH.defs=r[0].data;ACH.aw=r[1].data;ACH.led=r[2].data.filter(x=>x.user_id===me.id);ACH.certs=r[3].data.filter(x=>x.user_id===me.id);
+  ACH.prog=Object.fromEntries(r[4].data.map(x=>[x.def_id,x]));
+  if(isAuth())ACH.audit=(await db(sb.from('achievement_audit').select('*').order('created_at',{ascending:false}).limit(30))).data;
+  ACH.st='ready';ACH.err='';
+ }catch(e){ACH.st='error';ACH.err=e.message||String(e)}
+ render();
+}
 function resView(){
  const mg=R.filter(canManage),vis=R.filter(mine);
  const f=mg.length?`<div class="card"><h2>Add a resource</h2><label for="xr">Classroom</label><select id="xr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
@@ -429,7 +545,7 @@ function resView(){
 function page(){
  const m=MENU.find(x=>x[0]===tab)||MENU[0];
  if(tab==='dash')return dashView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();
- if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='marks')return marksView();if(tab==='analytics')return anView();if(tab==='admin'&&isAuth())return adminView();
+ if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='marks')return marksView();if(tab==='analytics')return anView();if(tab==='ach')return achView();if(tab==='admin'&&isAuth())return adminView();
  return `<h2>${esc(m[2])}</h2><div class="card"><p>This page is not available yet.</p><p class="sub">It is being moved to the shared database and will return in an update.</p></div>`;
 }
 function render(){const a=$('app');if(me&&bd){a.innerHTML=editorHTML();initCanvas();return}
@@ -448,7 +564,7 @@ const ACT={
   const email=val('e').toLowerCase(),password=$('p').value;if(!email||!password)return say('Enter your email and password.');
   say('');const r=await sb.auth.signInWithPassword({email,password});if(r.error)return say(r.error.message);await enter(r.data.user)},
  async out(){await sb.auth.signOut();me=null;openRoom=null;mode='in';render()},
- tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render()},
+ tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render();if(tab==='ach'&&ACH.st!=='loading')achLoad()},
  open(el){openRoom=el.dataset.id;tab='rooms';render()},
  back(){openRoom=null;render()},
  async mkroom(){const name=val('rn');if(!name)return say('Write the classroom name.');await db(sb.from('classrooms').insert({name,teacher_id:$('rt').value||null}));say('Classroom created.');await refresh()},
@@ -461,6 +577,24 @@ const ACT={
  async rename(el){const name=val('cn');if(!name)return;await db(sb.from('class_sessions').update({name}).eq('id',el.dataset.id));say('Class name saved.');await refresh()},
  async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
  nav(){navOpen=!navOpen;render()},
+ achretry(){return achLoad()},
+ totl(){const e=$('timeline');if(e)e.scrollIntoView({behavior:'smooth'})},
+ achopen(el){achOpen=el.dataset.id;render();const c=$('dclose');if(c)c.focus()},
+ achclose(){achOpen=null;render()},
+ async achaward(){const u=$('aw-u').value,d=$('aw-d').value,n=val('aw-n');if(!u||!d)return say('Choose a person and an achievement.');
+  await db(sb.rpc('award_manual',{p_def:d,p_user:u,p_note:n,p_evidence:{}}));say('Achievement awarded.');await achLoad()},
+ async achrevoke(el){const reason=prompt('Reason for revoking this award (required):');if(!reason||!reason.trim())return;
+  await db(sb.rpc('revoke_award',{p_award:el.dataset.id,p_reason:reason.trim()}));say('Award revoked.');await achLoad()},
+ async achcard(el){const d=ACH.defs.find(x=>x.id===el.dataset.id),a=ACH.aw.find(x=>x.def_id===el.dataset.id&&x.user_id===me.id&&x.status==='active');
+  if(!d||!a)return say('Cards can only be made for active, verified awards.');
+  const c=document.createElement('canvas');c.width=c.height=1080;const g=c.getContext('2d');
+  g.fillStyle='#0b1230';g.fillRect(0,0,1080,1080);g.strokeStyle='#e6b94a';g.lineWidth=4;g.strokeRect(36,36,1008,1008);
+  const im=new Image();im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(badge(d,'earned',420));await im.decode();g.drawImage(im,330,150,420,420);
+  g.fillStyle='#f4f0e2';g.textAlign='center';g.font='bold 64px Georgia,serif';g.fillText(d.name,540,650);
+  g.fillStyle='#e6b94a';g.font='34px system-ui,sans-serif';g.fillText((d.level?LV[d.level]+' · ':'')+d.category,540,705);
+  g.fillStyle='#e8ebff';g.font='38px system-ui,sans-serif';g.fillText('Awarded to '+me.name,540,800);g.fillStyle='#a3abdc';g.font='30px system-ui,sans-serif';g.fillText('Earned '+dday(a.awarded_at),540,850);
+  g.fillText('CASTRA · Cassiopeia: The Astronomers',540,980);
+  c.toBlob(b=>saveBlob(b,'image/png',(d.name.replace(/[^\w\- ]+/g,'')||'achievement')+'.png'))},
  antab(el){anTab=el.dataset.v;render()},
  exportcsv(){if(!anCsv)return;const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';saveBlob('\ufeff'+anCsv.rows.map(r=>r.map(q).join(',')).join('\r\n'),'text/csv;charset=utf-8',anCsv.name)},
  async addtask(){const cid=$('tr').value,title=val('tt'),body=val('tx'),total=parseFloat($('tm').value),weight=parseFloat($('tw').value||'1');
@@ -518,10 +652,14 @@ const ACT={
 };
 document.addEventListener('click',async ev=>{
  const el=ev.target.closest('[data-act]');if(!el||el.disabled)return;const f=ACT[el.dataset.act];if(!f)return;
- if(el.dataset.act==='mode')ev.preventDefault();
+ if(el.dataset.act==='mode'||el.dataset.act==='totl')ev.preventDefault();
  el.disabled=true;try{await f(el)}catch(e){say(e.message||String(e))}finally{el.disabled=false}
 });
 document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.dataset.d){if(d.open)dopen.add(d.dataset.d);else dopen.delete(d.dataset.d)}},true);
+document.addEventListener('input',ev=>{const t=ev.target;if(!t.closest)return;const a=t.closest('[data-ach]'),l=t.closest('[data-tl]');
+ if(a){achF[a.dataset.ach]=a.value;const g=$('achgrid');if(g)g.innerHTML=galleryHTML()}
+ if(l){tlF[l.dataset.tl]=l.value;const g=$('tlbox');if(g)g.innerHTML=timelineHTML()}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&achOpen){achOpen=null;render()}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.closest&&ev.target.closest('.auth')&&ev.target.tagName==='INPUT'){const b=document.querySelector('.auth button[data-act]');if(b)b.click()}});
 document.addEventListener('change',async ev=>{
  const an2=ev.target.closest&&ev.target.closest('[data-an]');if(an2){an[an2.dataset.an]=an2.value;render();return}
