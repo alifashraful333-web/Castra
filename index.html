@@ -114,7 +114,7 @@ const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},achOpen=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},achOpen=null,LB={on:false,rows:[],period:'all'},defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -151,7 +151,7 @@ const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students'
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
- <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 13 Oct 2026 · Achievement editor</div></aside><main>${body}</main></div>`;
+ <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 13 Oct 2026 · Leaderboard</div></aside><main>${body}</main></div>`;
 }
 function dashView(){
  const rs=R.filter(mine),lv=rs.filter(live),held=rs.reduce((n,r)=>n+S.filter(s=>s.classroom_id===r.id&&!s.live).length,0),mg=rs.filter(canManage);
@@ -506,6 +506,25 @@ function adminAch(){
  <h3 style="margin:18px 0 6px">Recent awards</h3>${tbl(['Person','Achievement','Date','Method','Status',''],aws.map(a=>{const d=ACH.defs.find(x=>x.id===a.def_id);return[esc(nm(a.user_id)),esc(d?d.name+(d.level?' ('+LV[d.level]+')':''):'?'),dday(a.awarded_at),a.method,a.status,a.status==='active'?`<button class="small ghost" data-act="achrevoke" data-id="${a.id}">Revoke</button>`:esc(a.revoke_reason||'')]}))}
  <h3 style="margin:18px 0 6px">Audit log</h3>${tbl(['When','Who','Action','Details'],ACH.audit.map(a=>[dts(a.created_at),esc(nm(a.actor)),esc(a.action),esc(JSON.stringify(a.detail).slice(0,90))]))}<p class="sub" style="margin-top:8px">Editing achievement definitions and reviewing award requests are not built yet.</p>${defAdmin()}${certAdmin()}</div>`;
 }
+function lbHTML(){
+ const stu=me.role==='student',on=LB.on;
+ let h=`<div class="card"><p class="sub" style="margin-top:0">Rankings show only a name and recognition points. Attendance, marks, certificates and institutions are never shown here. Points are separate from marks, and only students are ranked.</p>`;
+ if(!on)h+=`<p><b>The leaderboard is turned off.</b></p>${isAuth()?'':'<p class="sub">It appears here if the authors turn it on.</p>'}`;
+ else{
+  h+=`<div class="row" style="margin-bottom:10px"><label for="lb-p" class="sub" style="margin:0">Period</label><select id="lb-p" data-lb="period" style="width:auto"><option value="all"${LB.period==='all'?' selected':''}>All time</option><option value="month"${LB.period==='month'?' selected':''}>Last 30 days</option><option value="year"${LB.period==='year'?' selected':''}>This year</option></select></div>`;
+  h+=LB.rows.length?tbl(['Rank','Name','Points','Achievements'],LB.rows.map(r=>[r.lb_rank,esc(r.lb_name)+(r.lb_is_me?' <span class="tag">you</span>':''),r.lb_points,r.lb_achievements])):'<p class="sub">No rankings to show yet. Rankings appear once at least 3 students who take part have earned points in this period.</p>';
+  if(stu)h+=`<p class="sub" style="margin-top:12px">${me.leaderboard_opt_out?'You are hidden from the rankings.':'Your name can appear in the rankings.'}</p><button class="small ghost" data-act="lbopt">${me.leaderboard_opt_out?'Show me in the rankings':'Hide me from the rankings'}</button>`;
+  else h+='<p class="sub" style="margin-top:12px">Teachers and authors are not ranked.</p>';
+ }
+ if(isAuth())h+=`<div style="margin-top:12px"><button class="small" data-act="lbtoggle">${on?'Turn the leaderboard off':'Turn the leaderboard on'}</button></div>`;
+ else if(stu&&!on)h+=`<div style="margin-top:12px"><button class="small ghost" data-act="lbopt">${me.leaderboard_opt_out?'Show me in the rankings if it is turned on':'Hide me from the rankings if it is turned on'}</button></div>`;
+ return h+'</div>';
+}
+async function lbLoad(){
+ const st=await db(sb.from('app_settings').select('*').eq('key','leaderboard'));
+ LB.on=!!(st.data[0]&&st.data[0].value&&st.data[0].value.enabled);
+ LB.rows=LB.on?(await db(sb.rpc('get_leaderboard',{p_period:LB.period,p_limit:20}))).data:[];
+}
 function defAdmin(){
  const l=ACH.defs.slice().sort((a,b)=>a.category.localeCompare(b.category)||a.name.localeCompare(b.name)||LVO.indexOf(a.level)-LVO.indexOf(b.level));
  return `<h3 style="margin:18px 0 6px">Achievement definitions</h3><div style="margin-bottom:8px"><button data-act="defnew">New achievement</button></div>${tbl(['Name','Level','Category','How','Points','Version','Status',''],l.map(d=>[esc(d.name),esc(lvlTxt(d)),esc(d.category),d.kind==='auto'?'Automatic':'Manual',d.points,'v'+d.version,d.active?'Active':'Archived',`<span class="row"><button class="small ghost" data-act="defedit" data-id="${d.id}">Edit</button><button class="small ghost" data-act="defactive" data-id="${d.id}" data-on="${d.active?0:1}">${d.active?'Archive':'Enable'}</button></span>`]))}<p class="sub" style="margin-top:6px">Changing how an achievement is earned creates a new version. People who already earned it keep their award, and nothing is revoked automatically.</p>`;
@@ -543,6 +562,7 @@ function achView(){
  <div class="card"><h2>Your next milestone</h2>${nextMilestone()}</div>
  <h2 style="margin-top:20px">Collection</h2><div class="row" style="margin-bottom:12px"><input data-ach="q" type="search" placeholder="Search achievements" aria-label="Search achievements" value="${esc(achF.q)}" style="max-width:260px">${sel('cat',[['all','All categories'],...CATS.map(c=>[c,c])],achF.cat)}${sel('st',[['all','All'],['earned','Earned'],['progress','In progress']],achF.st)}${sel('sort',[['recent','Recently earned'],['name','Name'],['points','Points'],['category','Category']],achF.sort)}</div><div id="achgrid">${galleryHTML()}</div>
  <h2 id="timeline" style="margin-top:24px">Timeline</h2><div class="row" style="margin-bottom:10px"><div><label for="tl-f">From</label><input id="tl-f" data-tl="from" type="date" value="${tlF.from}" style="width:auto"></div><div><label for="tl-t">To</label><input id="tl-t" data-tl="to" type="date" value="${tlF.to}" style="width:auto"></div><div><label for="tl-c">Category</label><select id="tl-c" data-tl="cat" style="width:auto"><option value="all">All</option>${[...CATS,'Certificates'].map(c=>`<option value="${esc(c)}"${tlF.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></div></div><div id="tlbox">${timelineHTML()}</div>
+ <h2 style="margin-top:24px">Leaderboard</h2><div id="lbbox">${lbHTML()}</div>
  <h2 style="margin-top:24px">Certificate vault</h2>${ACH.certs.length?`<div class="card list">${ACH.certs.map(c=>`<div><div><b>${esc(c.title)}</b><div class="sub">${esc(c.code)} · issued ${dday(c.issued_at)} by ${esc(c.issuer)}</div></div><span class="row"><span class="tag">${esc(c.status)}</span><button class="small" data-act="certopen" data-id="${c.id}">View</button><button class="small ghost" data-act="certcopy" data-id="${c.id}">Copy verification link</button></span></div>`).join('')}</div>`:'<div class="card sub">No certificates have been issued to you yet.</div>'}
  <div style="margin-top:24px">${adminAch()}</div>${achOpen?drawerHTML():''}${certOpen?certDrawer():''}${defOpen?defDrawer():''}`);
 }
@@ -594,7 +614,7 @@ async function achLoad(){
   ACH.defs=r[0].data;ACH.aw=r[1].data;ACH.led=r[2].data.filter(x=>x.user_id===me.id);ACH.certs=r[3].data.filter(x=>x.user_id===me.id);ACH.allCerts=r[3].data;
   ACH.prog=Object.fromEntries(r[4].data.map(x=>[x.def_id,x]));
   if(isAuth())ACH.audit=(await db(sb.from('achievement_audit').select('*').order('created_at',{ascending:false}).limit(30))).data;
-  ACH.st='ready';ACH.err='';
+  await lbLoad();ACH.st='ready';ACH.err='';
  }catch(e){ACH.st='error';ACH.err=e.message||String(e)}
  render();
 }
@@ -643,6 +663,8 @@ const ACT={
  async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
  nav(){navOpen=!navOpen;render()},
  achretry(){return achLoad()},
+ async lbtoggle(){await db(sb.rpc('set_leaderboard_enabled',{p_on:!LB.on}));say(LB.on?'Leaderboard turned off.':'Leaderboard turned on.');await achLoad()},
+ async lbopt(){await db(sb.rpc('set_my_leaderboard_opt_out',{p_out:!me.leaderboard_opt_out}));await load();say(me.leaderboard_opt_out?'You are hidden from the rankings.':'You can appear in the rankings.');await achLoad()},
  defnew(){defOpen='new';defDraft={name:'',description:'',category:CATS[0],level:'',points:10,kind:'manual',metric:'classes_attended',min:1,has_and:false,metric2:'eligible_sessions',min2:1,requirements:'',evidence_required:true,valid_from:'',valid_until:''};render()},
  defedit(el){const d=ACH.defs.find(x=>x.id===el.dataset.id);if(!d)return;const r=d.rule||{};
   defDraft={name:d.name,description:d.description,category:d.category,level:d.level||'',points:d.points,kind:d.kind,metric:r.metric||'classes_attended',min:r.min==null?1:r.min,has_and:!!r.and,metric2:(r.and&&r.and.metric)||'eligible_sessions',min2:(r.and&&r.and.min)==null?1:r.and.min,requirements:d.requirements,evidence_required:d.evidence_required,valid_from:d.valid_from||'',valid_until:d.valid_until||''};defOpen=d.id;render()},
@@ -744,6 +766,7 @@ document.addEventListener('click',async ev=>{
 });
 document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.dataset.d){if(d.open)dopen.add(d.dataset.d);else dopen.delete(d.dataset.d)}},true);
 document.addEventListener('input',ev=>{const t=ev.target;if(!t.closest)return;const a=t.closest('[data-ach]'),l=t.closest('[data-tl]');
+ const lb=t.closest('[data-lb]');if(lb){LB[lb.dataset.lb]=lb.value;lbLoad().then(()=>{const g=$('lbbox');if(g)g.innerHTML=lbHTML()}).catch(e=>say(e.message));return}
  const df=t.closest('[data-df]');if(df){defDraft[df.dataset.df]=df.type==='checkbox'?df.checked:df.value;if(['kind','has_and','metric'].includes(df.dataset.df))render()}
  if(a){achF[a.dataset.ach]=a.value;const g=$('achgrid');if(g)g.innerHTML=galleryHTML()}
  if(l){tlF[l.dataset.tl]=l.value;const g=$('tlbox');if(g)g.innerHTML=timelineHTML()}});
