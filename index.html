@@ -114,7 +114,7 @@ const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},achOpen=null,anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},achOpen=null,certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -151,7 +151,7 @@ const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students'
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
- <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 12 Oct 2026 · Achievements</div></aside><main>${body}</main></div>`;
+ <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 12 Oct 2026 · Certificates</div></aside><main>${body}</main></div>`;
 }
 function dashView(){
  const rs=R.filter(mine),lv=rs.filter(live),held=rs.reduce((n,r)=>n+S.filter(s=>s.classroom_id===r.id&&!s.live).length,0),mg=rs.filter(canManage);
@@ -504,7 +504,12 @@ function adminAch(){
  const aws=ACH.aw.slice().sort((a,b)=>b.awarded_at.localeCompare(a.awarded_at)).slice(0,25);
  return `<div class="card"><h2>Author controls</h2><h3 style="margin:6px 0">Award an achievement</h3><div class="row"><div class="grow"><label for="aw-u">Person</label><select id="aw-u">${people.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select></div><div class="grow"><label for="aw-d">Achievement</label><select id="aw-d">${defs.map(d=>`<option value="${d.id}">${esc(d.name)}${d.level?' ('+LV[d.level]+')':''}</option>`).join('')}</select></div></div><label for="aw-n">Evidence or note (required for verified achievements)</label><textarea id="aw-n" rows="2"></textarea><div style="margin-top:10px"><button data-act="achaward">Award</button></div>
  <h3 style="margin:18px 0 6px">Recent awards</h3>${tbl(['Person','Achievement','Date','Method','Status',''],aws.map(a=>{const d=ACH.defs.find(x=>x.id===a.def_id);return[esc(nm(a.user_id)),esc(d?d.name+(d.level?' ('+LV[d.level]+')':''):'?'),dday(a.awarded_at),a.method,a.status,a.status==='active'?`<button class="small ghost" data-act="achrevoke" data-id="${a.id}">Revoke</button>`:esc(a.revoke_reason||'')]}))}
- <h3 style="margin:18px 0 6px">Audit log</h3>${tbl(['When','Who','Action','Details'],ACH.audit.map(a=>[dts(a.created_at),esc(nm(a.actor)),esc(a.action),esc(JSON.stringify(a.detail).slice(0,90))]))}<p class="sub" style="margin-top:8px">Editing achievement definitions and reviewing award requests are not built yet.</p></div>`;
+ <h3 style="margin:18px 0 6px">Audit log</h3>${tbl(['When','Who','Action','Details'],ACH.audit.map(a=>[dts(a.created_at),esc(nm(a.actor)),esc(a.action),esc(JSON.stringify(a.detail).slice(0,90))]))}<p class="sub" style="margin-top:8px">Editing achievement definitions and reviewing award requests are not built yet.</p>${certAdmin()}</div>`;
+}
+function certAdmin(){
+ const people=Object.values(P).sort(byName),aws=ACH.aw.filter(a=>a.status==='active').sort((a,b)=>nm(a.user_id).localeCompare(nm(b.user_id)));
+ return `<h3 style="margin:18px 0 6px">Certificates</h3><p class="sub">Choose an active award to base the certificate on, or choose a person and type a title.</p><div class="row"><div class="grow"><label for="ce-a">Based on an award (optional)</label><select id="ce-a"><option value="">None</option>${aws.map(a=>{const d=ACH.defs.find(x=>x.id===a.def_id);return `<option value="${a.id}">${esc(nm(a.user_id))} — ${esc(d?d.name+(d.level?' ('+LV[d.level]+')':''):'?')}</option>`}).join('')}</select></div><div class="grow"><label for="ce-u">Person</label><select id="ce-u">${people.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select></div></div><label for="ce-t">Certificate title (optional when based on an award)</label><input id="ce-t"><div style="margin-top:10px"><button data-act="achissue">Issue certificate</button></div>
+ ${tbl(['Person','Title','ID','Issued','Status',''],ACH.allCerts.slice().sort((a,b)=>b.issued_at.localeCompare(a.issued_at)).map(c=>[esc(nm(c.user_id)),esc(c.title),esc(c.code),dday(c.issued_at),c.status,c.status==='valid'?`<span class="row"><button class="small ghost" data-act="certrevoke" data-id="${c.id}">Revoke</button><button class="small ghost" data-act="certreplace" data-id="${c.id}">Replace</button></span>`:esc(c.revoke_reason||'')]))}`;
 }
 function achView(){
  const wrap=h=>`<div class="hallpage">${h}</div>`;
@@ -516,8 +521,46 @@ function achView(){
  <div class="card"><h2>Your next milestone</h2>${nextMilestone()}</div>
  <h2 style="margin-top:20px">Collection</h2><div class="row" style="margin-bottom:12px"><input data-ach="q" type="search" placeholder="Search achievements" aria-label="Search achievements" value="${esc(achF.q)}" style="max-width:260px">${sel('cat',[['all','All categories'],...CATS.map(c=>[c,c])],achF.cat)}${sel('st',[['all','All'],['earned','Earned'],['progress','In progress']],achF.st)}${sel('sort',[['recent','Recently earned'],['name','Name'],['points','Points'],['category','Category']],achF.sort)}</div><div id="achgrid">${galleryHTML()}</div>
  <h2 id="timeline" style="margin-top:24px">Timeline</h2><div class="row" style="margin-bottom:10px"><div><label for="tl-f">From</label><input id="tl-f" data-tl="from" type="date" value="${tlF.from}" style="width:auto"></div><div><label for="tl-t">To</label><input id="tl-t" data-tl="to" type="date" value="${tlF.to}" style="width:auto"></div><div><label for="tl-c">Category</label><select id="tl-c" data-tl="cat" style="width:auto"><option value="all">All</option>${[...CATS,'Certificates'].map(c=>`<option value="${esc(c)}"${tlF.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></div></div><div id="tlbox">${timelineHTML()}</div>
- <h2 style="margin-top:24px">Certificate vault</h2>${ACH.certs.length?`<div class="card list">${ACH.certs.map(c=>`<div><div><b>${esc(c.title)}</b><div class="sub">${esc(c.code)} · issued ${dday(c.issued_at)} by ${esc(c.issuer)}</div></div><span class="tag">${esc(c.status)}</span></div>`).join('')}</div><p class="sub">Public verification links are not available yet.</p>`:'<div class="card sub">No certificates have been issued to you yet.</div>'}
- <div style="margin-top:24px">${adminAch()}</div>${achOpen?drawerHTML():''}`);
+ <h2 style="margin-top:24px">Certificate vault</h2>${ACH.certs.length?`<div class="card list">${ACH.certs.map(c=>`<div><div><b>${esc(c.title)}</b><div class="sub">${esc(c.code)} · issued ${dday(c.issued_at)} by ${esc(c.issuer)}</div></div><span class="row"><span class="tag">${esc(c.status)}</span><button class="small" data-act="certopen" data-id="${c.id}">View</button><button class="small ghost" data-act="certcopy" data-id="${c.id}">Copy verification link</button></span></div>`).join('')}</div>`:'<div class="card sub">No certificates have been issued to you yet.</div>'}
+ <div style="margin-top:24px">${adminAch()}</div>${achOpen?drawerHTML():''}${certOpen?certDrawer():''}`);
+}
+const verifyUrl=code=>location.origin+location.pathname+'?verify='+encodeURIComponent(code);
+function wrapT(g,t,x,y,w,lh){const ws=String(t).split(' ');let l='';const out=[];for(const q of ws){const tt=l?l+' '+q:q;if(g.measureText(tt).width>w&&l){out.push(l);l=q}else l=tt}out.push(l);out.forEach((s2,i)=>g.fillText(s2,x,y+i*lh));return y+(out.length-1)*lh}
+function drawCert(c){
+ const W=1600,H=1131,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+ g.fillStyle='#0b1230';g.fillRect(0,0,W,H);g.strokeStyle='#e6b94a';g.lineWidth=6;g.strokeRect(40,40,W-80,H-80);g.lineWidth=1.5;g.strokeRect(62,62,W-124,H-124);
+ const pts=[[740,120],[775,175],[810,135],[845,180],[880,118]];g.strokeStyle='#8fa0ff';g.lineWidth=2;g.beginPath();pts.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));g.stroke();g.fillStyle='#e6b94a';pts.forEach(q=>{g.beginPath();g.arc(q[0],q[1],6,0,7);g.fill()});
+ g.textAlign='center';g.fillStyle='#f4f0e2';g.font='bold 54px Georgia,serif';g.fillText('C A S T R A',W/2,260);
+ g.fillStyle='#a3abdc';g.font='24px system-ui,sans-serif';g.fillText('Cassiopeia Academic System for Teaching, Records & Administration',W/2,300);
+ g.fillStyle='#e6b94a';g.font='bold 40px Georgia,serif';g.fillText('CERTIFICATE OF RECOGNITION',W/2,400);
+ g.fillStyle='#a3abdc';g.font='28px system-ui,sans-serif';g.fillText('This certifies that',W/2,470);
+ g.fillStyle='#ffffff';g.font='bold 78px Georgia,serif';g.fillText(nm(c.user_id),W/2,570);
+ g.fillStyle='#a3abdc';g.font='28px system-ui,sans-serif';g.fillText('has been recognised with',W/2,640);
+ g.fillStyle='#f4f0e2';g.font='bold 52px Georgia,serif';const ey=wrapT(g,c.title,W/2,725,1150,66);
+ g.fillStyle='#a3abdc';g.font='28px system-ui,sans-serif';const y2=ey+110;g.fillText('Issued by '+c.issuer+' on '+dday(c.issued_at),W/2,y2);g.fillText('Authorized by '+nm(c.issued_by),W/2,y2+42);
+ g.font='24px system-ui,sans-serif';g.fillText('Certificate ID: '+c.code+'   ·   Status: '+c.status,W/2,H-150);g.fillText('Verify at '+verifyUrl(c.code),W/2,H-110);
+ if(c.status!=='valid'){g.save();g.translate(W/2,H/2);g.rotate(-0.35);g.fillStyle='rgba(255,138,128,.35)';g.font='bold 220px system-ui,sans-serif';g.fillText(c.status.toUpperCase(),0,60);g.restore()}
+ return cv;
+}
+function certDrawer(){
+ const c=ACH.allCerts.find(x=>x.id===certOpen);if(!c)return '';const url=verifyUrl(c.code);
+ return `<div class="drawer-back"><div class="drawer-bg" data-act="certclose"></div><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="ct"><button id="cclose" class="small ghost" data-act="certclose" style="float:right">Close</button><h2 id="ct" style="margin-top:0">${esc(c.title)}</h2>${certImg[c.id]?`<img src="${certImg[c.id]}" alt="Certificate for ${esc(nm(c.user_id))}: ${esc(c.title)}" style="width:100%;border:1px solid #2b3270;border-radius:8px">`:''}
+ <div class="card" style="margin-top:12px"><div class="sub">Certificate ID: <b>${esc(c.code)}</b></div><div class="sub">Holder: ${esc(nm(c.user_id))}</div><div class="sub">Issued ${dts(c.issued_at)} by ${esc(c.issuer)}</div><div class="sub">Authorized by ${esc(nm(c.issued_by))}</div><div class="sub">Status: ${esc(c.status)}</div><div class="sub" style="overflow-wrap:anywhere">Verification link: <a href="${esc(url)}" target="_blank" rel="noopener">${esc(url)}</a></div></div>
+ <div class="row" style="margin-top:12px"><button data-act="certdl" data-id="${c.id}"${c.status==='valid'?'':' disabled'}>Download certificate (PNG)</button><button class="ghost" data-act="certcopy" data-id="${c.id}">Copy verification link</button></div>${c.status==='valid'?'':'<p class="sub">Only valid certificates can be downloaded.</p>'}</aside></div>`;
+}
+async function showVerify(code){
+ const a=$('app');code=String(code).trim().slice(0,40);
+ const page=h=>`<div class="auth" style="max-width:560px"><div class="brand" style="margin-bottom:18px">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div><div class="card"><h2>Certificate verification</h2>${h}</div><p class="sub">This page shows only what is needed to check a certificate. <a href="${esc(location.pathname)}">Open CASTRA</a></p></div>`;
+ a.innerHTML=page('<p role="status">Checking certificate...</p>');
+ try{
+  const r=await sb.rpc('verify_certificate',{p_code:code});if(r.error)throw r.error;const c=r.data&&r.data[0],id=code.toUpperCase();
+  if(!c){a.innerHTML=page(`<p><b>No certificate found</b> with the ID <code>${esc(id)}</code>.</p><p class="sub">Check the ID and try again.</p>`);return}
+  const d=dday(c.issued_at);let h;
+  if(c.status==='valid')h=`<p class="ok" style="font-size:1.3rem;margin:0"><b>Valid certificate</b></p><p>This certifies that <b>${esc(c.holder_name)}</b> received <b>${esc(c.title)}</b>.</p><div class="sub">Issued by ${esc(c.issuer)} · authorized by ${esc(c.issued_by_name||'CASTRA authors')} · ${d}</div>`;
+  else if(c.status==='revoked')h=`<p style="font-size:1.3rem;margin:0;color:var(--bad)"><b>Revoked</b></p><p>This certificate has been revoked and is no longer valid.</p><div class="sub">Original issue date: ${d}</div>`;
+  else h=`<p style="font-size:1.3rem;margin:0;color:var(--warm)"><b>Replaced</b></p><p>This certificate was replaced by a newer one.</p>${c.replaced_by_code?`<p>Newer certificate: <a href="?verify=${encodeURIComponent(c.replaced_by_code)}">${esc(c.replaced_by_code)}</a></p>`:''}<div class="sub">Original issue date: ${d}</div>`;
+  a.innerHTML=page(h+`<div class="sub" style="margin-top:10px">Certificate ID: ${esc(id)}</div>`);
+ }catch(e){a.innerHTML=page(`<p class="err" role="alert">The certificate could not be checked right now: ${esc(e.message||e)}</p>`)}
 }
 async function achLoad(){
  ACH.st='loading';render();
@@ -526,7 +569,7 @@ async function achLoad(){
   const q=t=>sb.from(t).select('*');
   const r=await Promise.all([q('achievement_defs'),q('achievement_awards'),q('points_ledger'),q('certificates'),sb.rpc('my_achievement_progress')]);
   for(const x of r)if(x.error)throw x.error;
-  ACH.defs=r[0].data;ACH.aw=r[1].data;ACH.led=r[2].data.filter(x=>x.user_id===me.id);ACH.certs=r[3].data.filter(x=>x.user_id===me.id);
+  ACH.defs=r[0].data;ACH.aw=r[1].data;ACH.led=r[2].data.filter(x=>x.user_id===me.id);ACH.certs=r[3].data.filter(x=>x.user_id===me.id);ACH.allCerts=r[3].data;
   ACH.prog=Object.fromEntries(r[4].data.map(x=>[x.def_id,x]));
   if(isAuth())ACH.audit=(await db(sb.from('achievement_audit').select('*').order('created_at',{ascending:false}).limit(30))).data;
   ACH.st='ready';ACH.err='';
@@ -578,6 +621,18 @@ const ACT={
  async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
  nav(){navOpen=!navOpen;render()},
  achretry(){return achLoad()},
+ certopen(el){const c=ACH.allCerts.find(x=>x.id===el.dataset.id);if(!c)return;certImg[c.id]=drawCert(c).toDataURL('image/png');certOpen=c.id;render();const b=$('cclose');if(b)b.focus()},
+ certclose(){certOpen=null;render()},
+ certdl(el){const c=ACH.allCerts.find(x=>x.id===el.dataset.id);if(!c||c.status!=='valid')return say('Only valid certificates can be downloaded.');drawCert(c).toBlob(b=>saveBlob(b,'image/png',(c.title.replace(/[^\w\- ]+/g,'')||'certificate')+' - '+c.code+'.png'))},
+ async certcopy(el){const c=ACH.allCerts.find(x=>x.id===el.dataset.id);if(!c)return;const u=verifyUrl(c.code);try{await navigator.clipboard.writeText(u);say('Verification link copied.')}catch(e){say('Copy this link: '+u)}},
+ async achissue(){const aw=$('ce-a').value;let u=$('ce-u').value,t=val('ce-t');
+  if(aw){const a=ACH.aw.find(x=>x.id===aw),d=a&&ACH.defs.find(x=>x.id===a.def_id);if(!a)return;u=a.user_id;if(!t&&d)t='Achievement: '+d.name+(d.level?' ('+LV[d.level]+')':'')}
+  if(!t)return say('Type the certificate title.');
+  const r=await db(sb.rpc('issue_certificate',{p_user:u,p_title:t,p_award:aw||null}));say('Certificate issued: '+r.data);await achLoad()},
+ async certrevoke(el){const reason=prompt('Reason for revoking this certificate (required):');if(!reason||!reason.trim())return;
+  await db(sb.rpc('revoke_certificate',{p_cert:el.dataset.id,p_reason:reason.trim()}));say('Certificate revoked.');await achLoad()},
+ async certreplace(el){const t=prompt('Title for the replacement certificate:');if(!t||!t.trim())return;
+  const r=await db(sb.rpc('replace_certificate',{p_cert:el.dataset.id,p_title:t.trim()}));say('Replacement issued: '+r.data);await achLoad()},
  totl(){const e=$('timeline');if(e)e.scrollIntoView({behavior:'smooth'})},
  achopen(el){achOpen=el.dataset.id;render();const c=$('dclose');if(c)c.focus()},
  achclose(){achOpen=null;render()},
@@ -659,7 +714,7 @@ document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.datase
 document.addEventListener('input',ev=>{const t=ev.target;if(!t.closest)return;const a=t.closest('[data-ach]'),l=t.closest('[data-tl]');
  if(a){achF[a.dataset.ach]=a.value;const g=$('achgrid');if(g)g.innerHTML=galleryHTML()}
  if(l){tlF[l.dataset.tl]=l.value;const g=$('tlbox');if(g)g.innerHTML=timelineHTML()}});
-document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&achOpen){achOpen=null;render()}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&(achOpen||certOpen)){achOpen=null;certOpen=null;render()}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.closest&&ev.target.closest('.auth')&&ev.target.tagName==='INPUT'){const b=document.querySelector('.auth button[data-act]');if(b)b.click()}});
 document.addEventListener('change',async ev=>{
  const an2=ev.target.closest&&ev.target.closest('[data-an]');if(an2){an[an2.dataset.an]=an2.value;render();return}
@@ -670,7 +725,8 @@ document.addEventListener('change',async ev=>{
  try{await db(sb.from('profiles').update({role:s.value}).eq('id',s.dataset.role));say('Role updated.');await refresh()}catch(e){say(e.message)}
 });
 window.addEventListener('beforeunload',e=>{if(bd&&bd.slides.some(x=>x.d)){e.preventDefault();e.returnValue=''}});
-(async()=>{try{const r=await sb.auth.getSession();if(r.data&&r.data.session)await enter(r.data.session.user)}catch(e){say(e.message||String(e))}render()})();
+(async()=>{const vc=new URLSearchParams(location.search).get('verify');if(vc){showVerify(vc);return}
+try{const r=await sb.auth.getSession();if(r.data&&r.data.session)await enter(r.data.session.user)}catch(e){say(e.message||String(e))}render()})();
 </script>
 </body>
 </html>
