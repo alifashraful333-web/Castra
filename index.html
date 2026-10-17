@@ -126,7 +126,7 @@ const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},achOpen=null,LB={on:false,view:'all',cat:'Consistency',rows:[],total:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},NT={st:'idle',rows:[],err:'',n:20},achOpen=null,LB={on:false,view:'all',cat:'Consistency',rows:[],total:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -159,11 +159,11 @@ function authView(){
  <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
-const MENU=[['dash','📊','Dashboard'],['notice','📢','Notice',1],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','','Analytics'],['ach','','Achievements'],['admin','⚙️','Administration',0,1]];
+const MENU=[['dash','📊','Dashboard'],['notice','','Notice'],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','','Analytics'],['ach','','Achievements'],['admin','⚙️','Administration',0,1]];
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
- <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 13 Oct 2026 · Cosmic Points</div></aside><main>${body}</main></div>`;
+ <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 17 Oct 2026 · Notices</div></aside><main>${body}</main></div>`;
 }
 function dashView(){
  const rs=R.filter(mine),lv=rs.filter(live),held=rs.reduce((n,r)=>n+S.filter(s=>s.classroom_id===r.id&&!s.live).length,0),mg=rs.filter(canManage);
@@ -702,6 +702,21 @@ async function achLoad(){
  }catch(e){ACH.st='error';ACH.err=e.message||String(e)}
  render();const b=$('cbv');if(b)b.focus();
 }
+async function noticeLoad(){
+ NT.st='loading';render();
+ try{const r=await db(sb.from('notices').select('*').order('created_at',{ascending:false}));NT.rows=r.data;NT.st='ready';NT.err=''}
+ catch(e){NT.st='error';NT.err=e.message||String(e)}
+ render();
+}
+function noticeView(){
+ let h='<h2>Notice</h2>';
+ if(NT.st==='idle'||NT.st==='loading')return h+'<div class="card sub" role="status">Loading notices...</div>';
+ if(NT.st==='error')return h+`<div class="card"><p class="err" role="alert">${esc(NT.err)}</p><p class="sub">If this mentions a missing table, the latest database update has not been run yet.</p><button data-act="noticeretry">Try again</button></div>`;
+ if(me.role==='teacher'||me.role==='author')h+=`<div class="card"><h3 style="margin-top:0">Post a notice</h3><label for="nt-t">Title</label><input id="nt-t" maxlength="150"><label for="nt-b">Description</label><textarea id="nt-b" rows="5" maxlength="5000"></textarea><div style="margin-top:12px"><button data-act="noticepost">Post notice</button></div></div>`;
+ const l=NT.rows;
+ h+=l.length?l.slice(0,NT.n).map(n=>`<div class="card"><h3 style="margin-top:0">${esc(n.title)}</h3><p style="white-space:pre-wrap;margin:8px 0">${esc(n.body)}</p><div class="sub">Posted by ${esc(nm(n.author_id))} · ${dts(n.created_at)}</div>${isAuth()||n.author_id===me.id?`<div style="margin-top:10px"><button class="small ghost" data-act="noticedel" data-id="${n.id}">Delete</button></div>`:''}</div>`).join('')+(l.length>NT.n?'<div><button class="small ghost" data-act="noticemore">Show more</button></div>':''):'<div class="card sub">No notices yet.</div>';
+ return h;
+}
 function resView(){
  const mg=R.filter(canManage),vis=R.filter(mine);
  const f=mg.length?`<div class="card"><h2>Add a resource</h2><label for="xr">Classroom</label><select id="xr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
@@ -714,7 +729,7 @@ function resView(){
 function page(){
  const m=MENU.find(x=>x[0]===tab)||MENU[0];
  if(tab==='dash')return dashView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();
- if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='marks')return marksView();if(tab==='analytics')return anView();if(tab==='ach')return achView();if(tab==='admin'&&isAuth())return adminView();
+ if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='marks')return marksView();if(tab==='analytics')return anView();if(tab==='ach')return achView();if(tab==='notice')return noticeView();if(tab==='admin'&&isAuth())return adminView();
  return `<h2>${esc(m[2])}</h2><div class="card"><p>This page is not available yet.</p><p class="sub">It is being moved to the shared database and will return in an update.</p></div>`;
 }
 function render(){const a=$('app');if(me&&bd){a.innerHTML=editorHTML();initCanvas();return}
@@ -733,7 +748,7 @@ const ACT={
   const email=val('e').toLowerCase(),password=$('p').value;if(!email||!password)return say('Enter your email and password.');
   say('');const r=await sb.auth.signInWithPassword({email,password});if(r.error)return say(r.error.message);await enter(r.data.user)},
  async out(){await sb.auth.signOut();me=null;openRoom=null;mode='in';render()},
- tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render();if(tab==='ach'&&ACH.st!=='loading')achLoad()},
+ tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render();if(tab==='ach'&&ACH.st!=='loading')achLoad();if(tab==='notice'&&NT.st!=='loading')noticeLoad()},
  open(el){openRoom=el.dataset.id;tab='rooms';render()},
  back(){openRoom=null;render()},
  async mkroom(){const name=val('rn');if(!name)return say('Write the classroom name.');await db(sb.from('classrooms').insert({name,teacher_id:$('rt').value||null}));say('Classroom created.');await refresh()},
@@ -746,6 +761,12 @@ const ACT={
  async rename(el){const name=val('cn');if(!name)return;await db(sb.from('class_sessions').update({name}).eq('id',el.dataset.id));say('Class name saved.');await refresh()},
  async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
  nav(){navOpen=!navOpen;render()},
+ noticeretry(){return noticeLoad()},
+ noticemore(){NT.n+=20;render()},
+ async noticepost(){const t=val('nt-t'),b=val('nt-b');
+  if(!t)return say('Write a title for the notice.');if(!b)return say('Write the description of the notice.');
+  await db(sb.from('notices').insert({title:t,body:b,author_id:me.id}));say('Notice posted.');await noticeLoad()},
+ async noticedel(el){if(!confirm('Delete this notice?'))return;await db(sb.from('notices').delete().eq('id',el.dataset.id));say('Notice deleted.');await noticeLoad()},
  achretry(){return achLoad()},
  async lbtoggle(){await db(sb.rpc('set_leaderboard_enabled',{p_on:!LB.on}));say(LB.on?'Leaderboard turned off.':'Leaderboard turned on.');await achLoad()},
  async lbopt(){await db(sb.rpc('set_my_leaderboard_opt_out',{p_out:!me.leaderboard_opt_out}));await load();say(me.leaderboard_opt_out?'You are hidden from the rankings.':'You can appear in the rankings.');await achLoad()},
