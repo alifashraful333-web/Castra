@@ -712,7 +712,8 @@ function noticeView(){
  let h='<h2>Notice</h2>';
  if(NT.st==='idle'||NT.st==='loading')return h+'<div class="card sub" role="status">Loading notices...</div>';
  if(NT.st==='error')return h+`<div class="card"><p class="err" role="alert">${esc(NT.err)}</p><p class="sub">If this mentions a missing table, the latest database update has not been run yet.</p><button data-act="noticeretry">Try again</button></div>`;
- if(me.role==='teacher'||me.role==='author')h+=`<div class="card"><h3 style="margin-top:0">Post a notice</h3><label for="nt-t">Title</label><input id="nt-t" maxlength="150"><label for="nt-b">Description</label><textarea id="nt-b" rows="5" maxlength="5000"></textarea><div style="margin-top:12px"><button data-act="noticepost">Post notice</button></div></div>`;
+ const noticeRooms=R.filter(canManage);
+ if(me.role==='teacher'||me.role==='author')h+=noticeRooms.length?`<div class="card"><h3 style="margin-top:0">Post a notice</h3><label for="nt-room">Classroom</label><select id="nt-room" required><option value="">Choose a classroom</option>${noticeRooms.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('')}</select><label for="nt-t">Title</label><input id="nt-t" maxlength="150"><label for="nt-b">Description</label><textarea id="nt-b" rows="5" maxlength="5000"></textarea><div style="margin-top:12px"><button data-act="noticepost">Post notice</button></div></div>`:'<div class="card sub">You need to be a teacher of a classroom to post a notice.</div>';
  const l=NT.rows;
  h+=l.length?l.slice(0,NT.n).map(n=>`<div class="card"><h3 style="margin-top:0">${esc(n.title)}</h3><p style="white-space:pre-wrap;margin:8px 0">${esc(n.body)}</p><div class="sub">Posted by ${esc(nm(n.author_id))} · ${dts(n.created_at)}</div>${isAuth()||n.author_id===me.id?`<div style="margin-top:10px"><button class="small ghost" data-act="noticedel" data-id="${n.id}">Delete</button></div>`:''}</div>`).join('')+(l.length>NT.n?'<div><button class="small ghost" data-act="noticemore">Show more</button></div>':''):'<div class="card sub">No notices yet.</div>';
  return h;
@@ -763,9 +764,13 @@ const ACT={
  nav(){navOpen=!navOpen;render()},
  noticeretry(){return noticeLoad()},
  noticemore(){NT.n+=20;render()},
- async noticepost(){const t=val('nt-t'),b=val('nt-b');
+ async noticepost(){const t=val('nt-t'),b=val('nt-b'),cid=val('nt-room');
+  if(!cid)return say('Choose a classroom for this notice.');
+  const room=R.find(r=>String(r.id)===String(cid));
+  if(!room||!canManage(room))return say('You do not have permission to post notices in that classroom. Refresh and try again.');
   if(!t)return say('Write a title for the notice.');if(!b)return say('Write the description of the notice.');
-  await db(sb.from('notices').insert({title:t,body:b,author_id:me.id}));say('Notice posted.');await noticeLoad()},
+  try{await db(sb.from('notices').insert({classroom_id:room.id,title:t,body:b,author_id:me.id}));say('Notice posted.');await noticeLoad()}
+  catch(e){say('Could not post notice: '+(e.message||String(e))) }},
  async noticedel(el){if(!confirm('Delete this notice?'))return;await db(sb.from('notices').delete().eq('id',el.dataset.id));say('Notice deleted.');await noticeLoad()},
  achretry(){return achLoad()},
  async lbtoggle(){await db(sb.rpc('set_leaderboard_enabled',{p_on:!LB.on}));say(LB.on?'Leaderboard turned off.':'Leaderboard turned on.');await achLoad()},
