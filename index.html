@@ -8,6 +8,9 @@
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
+.quick-access button.card{color:#fff;text-align:left;background:#181d44;border-color:#343c7d}
+.quick-access button.card b{color:#fff}
+.quick-access button.card .sub{color:#d6dcff}
 :root{--bg:#eef1fb;--ink:#14183a;--mut:#5a6090;--card:#fff;--line:#d5daf0;--acc:#3b4cca;--on:#fff;--star:#b7791f;--warm:#a8480b;--ok:#1f7a4d;--bad:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1330;--ink:#e8ebff;--mut:#9aa1d6;--card:#181d44;--line:#2b3270;--acc:#8fa0ff;--on:#0f1330;--star:#f2c46d;--warm:#ffb86b;--ok:#6fd6a0;--bad:#ff8a80}}
 :root[data-theme="dark"]{--bg:#0f1330;--ink:#e8ebff;--mut:#9aa1d6;--card:#181d44;--line:#2b3270;--acc:#8fa0ff;--on:#0f1330;--star:#f2c46d;--warm:#ffb86b;--ok:#6fd6a0;--bad:#ff8a80}
@@ -171,7 +174,7 @@ function dashView(){
  const rs=R.filter(mine),lv=rs.filter(live),held=rs.reduce((n,r)=>n+S.filter(s=>s.classroom_id===r.id&&!s.live).length,0),mg=rs.filter(canManage);
  const st=(n,t)=>`<div class="card stat"><div class="num">${n}</div><div class="sub">${t}</div></div>`;
  return `<h2>Welcome, ${esc(me.name)}</h2><div class="stats">${st(rs.length,'Your classrooms')}${st(lv.length,'Live now')}${st(held,'Classes held')}${mg.length?st(mg.reduce((n,r)=>n+pend(r).length,0),'Join requests'):''}</div>
- <h2>Quick access</h2><div class="stats"><button class="card" data-act="tab" data-v="notice"><b>📢 Notices</b><div class="sub">View classroom announcements</div></button><button class="card" data-act="tab" data-v="ach"><b>🏆 Leaderboard</b><div class="sub">Achievements and Cosmic Points</div></button><button class="card" data-act="tab" data-v="marks"><b>📝 Assessments</b><div class="sub">Problems and submissions</div></button></div>
+ <h2>Quick access</h2><div class="stats quick-access"><button class="card" data-act="tab" data-v="notice"><b>Notices</b><div class="sub">View classroom announcements</div></button><button class="card" data-act="tab" data-v="ach"><b>Leaderboard</b><div class="sub">Achievements and Cosmic Points</div></button><button class="card" data-act="tab" data-v="marks"><b>Assessments</b><div class="sub">Problems and submissions</div></button></div>
  <h2>Live now</h2>${lv.length?lv.map(r=>`<div class="card row" style="justify-content:space-between"><div><h3>${esc(live(r).name)}</h3><div class="sub">${esc(r.name)}</div></div><button data-act="open" data-id="${r.id}">Open</button></div>`).join(''):'<div class="card sub">No class is live right now.</div>'}`;
 }
 function studentsView(){
@@ -185,7 +188,7 @@ function roomsView(){
   h+=`<div class="card"><h2>Create a classroom</h2><div class="row"><div class="grow"><label for="rn">Classroom name</label><input id="rn"></div><div class="grow"><label for="rt">Teacher</label><select id="rt">${ts.map(t=>`<option value="${t.id}"${t.id===me.id?' selected':''}>${esc(t.name)}${t.role==='author'?' (author)':''}</option>`).join('')}</select></div></div><div style="margin-top:12px"><button data-act="mkroom">Create classroom</button></div></div>`}
  h+='<h2>Classes</h2>';if(!R.length)h+='<div class="card sub">No classrooms yet. The author creates them.</div>';
  for(const r of R){const can=mine(r),p=M.some(m=>m.classroom_id===r.id&&m.user_id===me.id&&m.status==='pending');
-  h+=`<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(r.name)}</h3><div class="sub">Teachers: ${esc(tchrs(r).map(nm).join(', '))}</div></div><div class="row">${live(r)?'<span class="tag live">Class live</span>':''}${can?`<button data-act="open" data-id="${r.id}">Open</button>`:p?'<span class="tag">Request sent</span>':`<button class="ghost" data-act="req" data-id="${r.id}">Request to join</button>`}</div></div></div>`}
+  h+=`<div class="card"><div class="row" style="justify-content:space-between"><div><h3>${esc(r.name)}</h3><div class="sub">Teachers: ${esc(tchrs(r).map(nm).join(', '))}</div></div><div class="row">${live(r)?'<span class="tag live">Class live</span>':''}${can?`<button data-act="open" data-id="${r.id}">Open</button>`:p?'<span class="tag">Request sent</span>':`<button class="ghost" data-act="req" data-id="${r.id}">Request to join</button>`}${isAuth()?`<button class="small ghost" data-act="delclass" data-id="${r.id}" data-n="${esc(r.name)}">Delete class data</button>`:''}</div></div></div>`}
  return h;
 }
 function roomView(){
@@ -224,7 +227,7 @@ function attendView(){
 
 function adminView(){
  const all=Object.values(P).sort(byName);
- return `<h2>Administration</h2><p class="sub">${all.length} accounts, in alphabetical order.</p><div class="card list">${all.map(u=>`<div><div>${esc(u.name)}<div class="sub">${u.institution?esc(u.institution)+' · ':''}${esc(mail[u.id]||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':`<span class="row"><select data-role="${u.id}" style="width:auto" aria-label="Role for ${esc(u.name)}"><option value="student"${u.role==='student'?' selected':''}>student</option><option value="teacher"${u.role==='teacher'?' selected':''}>teacher</option></select><button class="small ghost" data-act="deluser" data-u="${u.id}" data-n="${esc(u.name)}">Remove</button></span>`}</div>`).join('')}</div>`;
+ return `<h2>Administration</h2><div class="card"><h3>Adjust Cosmic Points</h3><p class="sub">Give or deduct recognition points. This is separate from marks and is recorded in the audit ledger.</p><label for="cp-user">Student</label><select id="cp-user">${all.filter(u=>u.role==='student').map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select><div class="row"><div class="grow"><label for="cp-delta">Points to add or deduct</label><input id="cp-delta" type="number" step="1" min="-100000" max="100000" placeholder="e.g. 20 or -10"></div><div class="grow"><label for="cp-reason">Reason</label><input id="cp-reason" maxlength="250" placeholder="Reason for adjustment"></div></div><div style="margin-top:10px"><button data-act="adjustpoints">Record adjustment</button></div></div><p class="sub">${all.length} accounts, in alphabetical order.</p><div class="card list">${all.map(u=>`<div><div>${esc(u.name)}<div class="sub">${u.institution?esc(u.institution)+' · ':''}${esc(mail[u.id]||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':`<span class="row"><select data-role="${u.id}" style="width:auto" aria-label="Role for ${esc(u.name)}"><option value="student"${u.role==='student'?' selected':''}>student</option><option value="teacher"${u.role==='teacher'?' selected':''}>teacher</option></select><button class="small ghost" data-act="deluser" data-u="${u.id}" data-n="${esc(u.name)}">Remove</button></span>`}</div>`).join('')}</div>`;
 }
 function recordsView(){
  const mg=R.filter(canManage),vis=new Set(R.filter(mine).map(r=>r.id)),rs=REC.filter(x=>vis.has(x.classroom_id)).sort((a,b)=>String(b.updated_at).localeCompare(String(a.updated_at)));
@@ -760,6 +763,8 @@ const ACT={
  tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render();if(tab==='ach'&&ACH.st!=='loading')achLoad();if(tab==='notice'&&NT.st!=='loading')noticeLoad()},
  open(el){openRoom=el.dataset.id;tab='rooms';render()},
  back(){openRoom=null;render()},
+ async adjustpoints(){const uid=$('cp-user')?.value,delta=Number(val('cp-delta')),reason=val('cp-reason');if(!uid)return say('Choose a student.');if(!Number.isInteger(delta)||delta===0||Math.abs(delta)>100000)return say('Enter a non-zero whole number between -100000 and 100000.');if(!reason)return say('Enter a reason for the adjustment.');if(!confirm(`${delta>0?'Add':'Deduct'} ${Math.abs(delta)} Cosmic Points ${delta>0?'to':'from'} ${nm(uid)}?\n\nThis will be recorded in the ledger.`))return;await db(sb.rpc('adjust_cosmic_points',{p_user:uid,p_delta:delta,p_reason:reason}));say('Cosmic Points adjustment recorded.');$('cp-delta').value='';$('cp-reason').value='';},
+ async delclass(el){if(!isAuth())return say('Only the author can delete a classroom.');if(!confirm(`Permanently delete "${el.dataset.n}" and all related class data, including attendance, assessments, submissions, resources, records, boards and notices? This cannot be undone.`))return;await db(sb.rpc('delete_classroom_cascade',{p_classroom:el.dataset.id}));if(openRoom===el.dataset.id)openRoom=null;say('Classroom and related data deleted.');await refresh()},
  async mkroom(){const name=val('rn');if(!name)return say('Write the classroom name.');await db(sb.from('classrooms').insert({name,teacher_id:$('rt').value||null}));say('Classroom created.');await refresh()},
  async req(el){await db(sb.from('memberships').insert({classroom_id:el.dataset.id,user_id:me.id,status:'pending'}));await refresh()},
  async approve(el){await db(sb.from('memberships').update({status:'approved'}).eq('classroom_id',el.dataset.id).eq('user_id',el.dataset.u));await refresh()},
@@ -858,7 +863,7 @@ const ACT={
   const v=parseFloat($('mk-'+x.id).value);if(isNaN(v)||v<0||v>t.total)return say('Enter a mark from 0 to '+t.total+'.');
   await db(sb.from('submissions').update({mark:v,marked_by:me.id,marked_at:new Date().toISOString()}).eq('id',x.id));say('Mark saved.');await refresh()},
  async showsub(el){const id=el.dataset.id;if(!subImg[id]){const r=await db(sb.from('submissions').select('image').eq('id',id).single());subImg[id]=r.data.image}render()},
- async deltask(el){if(!confirm('Delete this problem and all its solutions?'))return;await db(sb.from('tasks').delete().eq('id',el.dataset.id));await refresh()},
+ async deltask(el){if(!confirm('Delete this problem and all its solutions? This cannot be undone.'))return;await db(sb.rpc('delete_task_cascade',{p_task:el.dataset.id}));say('Problem and its solutions deleted.');await refresh()},
  async startboard(){const cid=$('wr').value,name=val('wn');if(!name)return say('Type the class name first.');
   const b=(await db(sb.from('boards').insert({classroom_id:cid,name,author_id:me.id}).select().single())).data;
   const s=(await db(sb.from('board_slides').insert({board_id:b.id,position:0,bg:'white',strokes:[]}).select().single())).data;
