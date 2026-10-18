@@ -163,12 +163,13 @@ const MENU=[['dash','📊','Dashboard'],['notice','','Notice'],['students','👨
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
- <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 17 Oct 2026 · Notices</div></aside><main>${body}</main></div>`;
+ <div class="who"><div><b>${esc(me.name)}</b><div class="sub">${esc(me.role)}</div></div><button class="ghost small" data-act="out">Log out</button></div><div class="sub" style="font-size:.7rem;margin-top:-8px">Version: 18 Oct 2026 · CASTRA improvements</div></aside><main>${body}</main></div>`;
 }
 function dashView(){
  const rs=R.filter(mine),lv=rs.filter(live),held=rs.reduce((n,r)=>n+S.filter(s=>s.classroom_id===r.id&&!s.live).length,0),mg=rs.filter(canManage);
  const st=(n,t)=>`<div class="card stat"><div class="num">${n}</div><div class="sub">${t}</div></div>`;
  return `<h2>Welcome, ${esc(me.name)}</h2><div class="stats">${st(rs.length,'Your classrooms')}${st(lv.length,'Live now')}${st(held,'Classes held')}${mg.length?st(mg.reduce((n,r)=>n+pend(r).length,0),'Join requests'):''}</div>
+ <h2>Quick access</h2><div class="stats"><button class="card" data-act="tab" data-v="notice"><b>📢 Notices</b><div class="sub">View classroom announcements</div></button><button class="card" data-act="tab" data-v="ach"><b>🏆 Leaderboard</b><div class="sub">Achievements and Cosmic Points</div></button><button class="card" data-act="tab" data-v="marks"><b>📝 Assessments</b><div class="sub">Problems and submissions</div></button></div>
  <h2>Live now</h2>${lv.length?lv.map(r=>`<div class="card row" style="justify-content:space-between"><div><h3>${esc(live(r).name)}</h3><div class="sub">${esc(r.name)}</div></div><button data-act="open" data-id="${r.id}">Open</button></div>`).join(''):'<div class="card sub">No class is live right now.</div>'}`;
 }
 function studentsView(){
@@ -439,7 +440,7 @@ function anView(){
  const rooms=t==='my'?R.filter(r=>appr(r).includes(me.id)):t==='cls'?R.filter(canManage):[];
  let room=an.room;if(t==='cls'&&!rooms.some(r=>r.id===room))room=rooms[0]?rooms[0].id:'';if(t==='my'&&room!=='all'&&!rooms.some(r=>r.id===room))room='all';
  anCsv=null;const body=t==='my'?myPanel(from,room):t==='cls'?classPanel(from,room):t==='tch'?teachPanel(from):orgPanel(from);
- const opts=[['30','Last 30 days'],['90','Last 90 days'],['180','Last 6 months'],['year','This year'],['all','All time']];
+ const opts=[['7','Weekly report · last 7 days'],['30','Last 30 days'],['90','Last 90 days'],['180','Last 6 months'],['year','This year'],['all','All time']];
  return `<h2>Analytics</h2><div class="tabs row" style="margin-bottom:12px">${tabs.map(x=>`<button class="small ghost" data-act="antab" data-v="${x[0]}" aria-pressed="${t===x[0]}">${x[1]}</button>`).join('')}</div>
  <div class="row" style="margin-bottom:14px"><select data-an="range" style="width:auto" aria-label="Date range">${opts.map(o=>`<option value="${o[0]}"${an.range===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>${rooms.length?`<select data-an="room" style="width:auto" aria-label="Classroom">${t==='my'?`<option value="all"${room==='all'?' selected':''}>All classrooms</option>`:''}${rooms.map(r=>`<option value="${r.id}"${room===r.id?' selected':''}>${esc(r.name)}</option>`).join('')}</select>`:''}${anCsv&&t!=='my'?'<button class="small" data-act="exportcsv">Export CSV</button>':''}</div>${body}`;
 }
@@ -613,7 +614,7 @@ function defDrawer(){
 }
 function certAdmin(){
  const people=Object.values(P).sort(byName),aws=ACH.aw.filter(a=>a.status==='active').sort((a,b)=>nm(a.user_id).localeCompare(nm(b.user_id)));
- return `<h3 style="margin:18px 0 6px">Certificates</h3><p class="sub">Choose an active award to base the certificate on, or choose a person and type a title.</p><div class="row"><div class="grow"><label for="ce-a">Based on an award (optional)</label><select id="ce-a"><option value="">None</option>${aws.map(a=>{const d=ACH.defs.find(x=>x.id===a.def_id);return `<option value="${a.id}">${esc(nm(a.user_id))} — ${esc(d?d.name+(d.level?' ('+LV[d.level]+')':''):'?')}</option>`}).join('')}</select></div><div class="grow"><label for="ce-u">Person</label><select id="ce-u">${people.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select></div></div><label for="ce-t">Certificate title (optional when based on an award)</label><input id="ce-t"><div style="margin-top:10px"><button data-act="achissue">Issue certificate</button></div>
+ return `<h3 style="margin:18px 0 6px">Certificates</h3><p class="sub">Choose an active award to base the certificate on, or choose a person and type a title.</p><div class="row"><div class="grow"><label for="ce-a">Based on an award (optional)</label><select id="ce-a"><option value="">None</option>${aws.map(a=>{const d=ACH.defs.find(x=>x.id===a.def_id);return `<option value="${a.id}">${esc(d?d.name+(d.level?' ('+LV[d.level]+')':''):'?')}</option>`}).join('')}</select></div><div class="grow"><label for="ce-u">Person</label><select id="ce-u">${people.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join('')}</select></div></div><label for="ce-t">Certificate title (optional when based on an award)</label><input id="ce-t"><div style="margin-top:10px"><button data-act="achissue">Issue certificate</button></div>
  ${tbl(['Person','Title','ID','Issued','Status',''],ACH.allCerts.slice().sort((a,b)=>b.issued_at.localeCompare(a.issued_at)).map(c=>[esc(nm(c.user_id)),esc(c.title),esc(c.code),dday(c.issued_at),c.status,c.status==='valid'?`<span class="row"><button class="small ghost" data-act="certrevoke" data-id="${c.id}">Revoke</button><button class="small ghost" data-act="certreplace" data-id="${c.id}">Replace</button></span>`:esc(c.revoke_reason||'')]))}`;
 }
 function histHTML(){
@@ -719,9 +720,9 @@ function noticeView(){
  return h;
 }
 function resView(){
- const mg=R.filter(canManage),vis=R.filter(mine);
- const f=mg.length?`<div class="card"><h2>Add a resource</h2><label for="xr">Classroom</label><select id="xr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
- <label for="xn">Resource name</label><input id="xn"><label for="xl">Link (optional)</label><input id="xl" type="url" placeholder="https://..."><div style="margin-top:12px"><button data-act="addres">Upload</button></div></div>`:(me.role==='student'?'':'<div class="card sub">You are not a teacher of any classroom yet.</div>');
+ const mg=R.filter(canManage),vis=R.filter(mine),uploadRooms=me.role==='student'?vis:mg;
+ const f=uploadRooms.length?`<div class="card"><h2>Add a resource</h2><label for="xr">Classroom</label><select id="xr">${uploadRooms.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
+ <label for="xn">Resource name</label><input id="xn"><label for="xl">Link (optional)</label><input id="xl" type="url" placeholder="https://..."><div style="margin-top:12px"><button data-act="addres">Upload</button></div><p class="sub">You can delete resources you uploaded. The author can delete any resource.</p></div>`:(me.role==='student'?'<div class="card sub">Join a classroom to upload resources.</div>':'<div class="card sub">You are not a teacher of any classroom yet.</div>');
  const blocks=vis.map(r=>{const l=RES.filter(x=>x.classroom_id===r.id).sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
   if(!l.length)return '';
   return `<div class="card"><h3 style="margin-bottom:8px">${esc(r.name)}</h3><div class="list">${l.map((x,i)=>`<div><div><b>${i+1}.</b> ${esc(x.name)}<div class="sub">Added by ${esc(nm(x.author_id))} · ${dts(x.created_at)}</div></div><span class="row">${x.link?`<a class="btn" href="${esc(x.link)}" target="_blank" rel="noopener">Open</a>`:''}${isAuth()||x.author_id===me.id?`<button class="small ghost" data-act="delres" data-id="${x.id}">Delete</button>`:''}</span></div>`).join('')}</div></div>`}).join('');
