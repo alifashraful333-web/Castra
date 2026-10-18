@@ -225,7 +225,7 @@ function authView(){
  <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
-const MENU=[['dash','📊','Dashboard'],['notice','','Notice'],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule',1],['analytics','','Analytics'],['ach','','Achievements'],['admin','⚙️','Administration',0,1]];
+const MENU=[['dash','📊','Dashboard'],['notice','','Notice'],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule'],['analytics','','Analytics'],['ach','','Achievements'],['admin','⚙️','Administration',0,1]];
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
