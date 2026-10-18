@@ -112,6 +112,8 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border:1px solid v
 .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
 @media (max-width:759px){.cols{grid-template-columns:1fr}}
 #toast[hidden]{display:none}
+
+.attendance-grid{min-width:720px;border-collapse:separate;border-spacing:3px}.attendance-grid th{font-size:.78rem;vertical-align:bottom}.attendance-grid th.att-student{position:sticky;left:0;background:var(--card);text-align:left;min-width:145px}.att-cell{min-width:34px;padding:5px 8px;font-size:.78rem;font-weight:700;border-radius:6px}.att-yes{background:#16834a;border-color:#16834a;color:#fff}.att-no{background:#c52b35;border-color:#c52b35;color:#fff}.att-cell:disabled{opacity:1;cursor:default}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -207,13 +209,19 @@ function roomView(){
 }
 function attendView(){
  const rs=R.filter(mine);if(!rs.length)return '<h2>Attendance</h2><div class="card sub">Join a classroom to see attendance.</div>';
- return '<h2>Attendance</h2>'+rs.map(r=>{const m=canManage(r),all=S.filter(s=>s.classroom_id===r.id);
-  const row=s=>{const t=`${esc(s.name)}<span class="sub"> · ${new Date(s.started_at).toLocaleDateString()}${s.live?' · live':''}</span>`,pr=presentIds(s);
-   if(!m){const ok=pr.includes(me.id);return `<div><span>${t}</span><span class="tag ${ok?'live':''}">${ok?'Present':'Absent'}</span></div>`}
-   const ab=appr(r).filter(i=>!pr.includes(i));
-   return `<div><details style="width:100%"><summary><span>${t}</span><span class="tag">${pr.length} present · ${ab.length} absent</span></summary><div><b>Present:</b> ${pr.length?pr.map(i=>esc(nm(i))).join(', '):'none'}<br><b>Absent:</b> ${ab.length?ab.map(i=>esc(nm(i))).join(', '):'none'}</div></details></div>`};
-  return `<div class="card"><h3 style="margin-bottom:8px">${esc(r.name)}</h3>${all.length?`<div class="list">${all.map(row).join('')}</div>`:'<p class="sub">No classes yet.</p>'}</div>`}).join('');
+ let out='<h2>Attendance</h2><p class="sub">Green = present · red = absent. Teachers and the author can change attendance for sessions they manage.</p>';
+ for(const r of rs){
+  const manage=canManage(r),sessions=S.filter(s=>s.classroom_id===r.id&&!s.live).sort((a,b)=>String(a.started_at).localeCompare(String(b.started_at)));
+  const students=appr(r).filter(uid=>M.some(m=>m.user_id===uid&&m.classroom_id===r.id&&m.role!=='teacher')).sort((a,b)=>byName(P[a]||{},P[b]||{}));
+  if(!sessions.length){out+=`<div class="card"><h3>${esc(r.name)}</h3><p class="sub">No completed classes yet.</p></div>`;continue}
+  const cell=(uid,ss)=>{const enrolledAt=M.find(m=>m.user_id===uid&&m.classroom_id===r.id)?.approved_at||M.find(m=>m.user_id===uid&&m.classroom_id===r.id)?.created_at||0;if(new Date(enrolledAt)>new Date(ss.started_at))return '<td class="sub" title="Not enrolled yet">—</td>';const yes=presentIds(ss).includes(uid);return `<td><button class="att-cell ${yes?'att-yes':'att-no'}" ${manage?'data-act="toggleatt" data-sid="'+ss.id+'" data-u="'+uid+'" data-rid="'+r.id+'"':'disabled'} title="${manage?'Click to change attendance':(yes?'Present':'Absent')}" aria-label="${esc(nm(uid))}, ${esc(ss.name)}: ${yes?'present':'absent'}">${yes?'P':'A'}</button></td>`};
+  const head=sessions.map(ss=>`<th title="${esc(tchrs(r).map(nm).join(', '))}"><div>${dday(ss.started_at)}</div><div class="sub" style="font-size:.68rem">${esc(ss.name)}</div><div class="sub" style="font-size:.62rem">${esc(tchrs(r).map(nm).join(', '))}</div></th>`).join('');
+  const rows=students.map(uid=>{const vals=sessions.map(ss=>eligible(M.find(m=>m.user_id===uid&&m.classroom_id===r.id)?.approved_at||M.find(m=>m.user_id===uid&&m.classroom_id===r.id)?.created_at||0)<=new Date(ss.started_at)?(presentIds(ss).includes(uid)?1:0):null).filter(v=>v!==null),pct=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length*100):null;return `<tr><th class="att-student">${esc(nm(uid))}<div class="sub">${pct===null?'No data':pct+'% attendance'}</div></th>${sessions.map(ss=>cell(uid,ss)).join('')}</tr>`}).join('');
+  out+=`<div class="card"><h3 style="margin-bottom:8px">${esc(r.name)}</h3><div style="overflow:auto;max-width:100%"><table class="tb attendance-grid"><thead><tr><th>Student</th>${head}</tr></thead><tbody>${rows||'<tr><td colspan="100">No enrolled students.</td></tr>'}</tbody></table></div></div>`;
+ }
+ return out;
 }
+
 function adminView(){
  const all=Object.values(P).sort(byName);
  return `<h2>Administration</h2><p class="sub">${all.length} accounts, in alphabetical order.</p><div class="card list">${all.map(u=>`<div><div>${esc(u.name)}<div class="sub">${u.institution?esc(u.institution)+' · ':''}${esc(mail[u.id]||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':`<span class="row"><select data-role="${u.id}" style="width:auto" aria-label="Role for ${esc(u.name)}"><option value="student"${u.role==='student'?' selected':''}>student</option><option value="teacher"${u.role==='teacher'?' selected':''}>teacher</option></select><button class="small ghost" data-act="deluser" data-u="${u.id}" data-n="${esc(u.name)}">Remove</button></span>`}</div>`).join('')}</div>`;
@@ -307,14 +315,13 @@ function boardPage(){
 async function boardSlides(id){const r=await db(sb.from('board_slides').select('*').eq('board_id',id).order('position'));const l=r.data.map(x=>({id:x.id,bg:x.bg,strokes:x.strokes||[]}));return l.length?l:[{id:null,bg:'white',strokes:[]}]}
 const dopen=new Set(),dop=k=>dopen.has(k)?' open':'';
 const pvId=k=>'pv-'+k.replace(/\W/g,'');
-const pic=k=>`<div id="${pvId(k)}">${imgDraft[k]?`<img class="pimg" src="${imgDraft[k]}" alt="Chosen picture">`:''}</div>`;
+const imageList=v=>{if(!v)return[];if(Array.isArray(v))return v;try{const x=JSON.parse(v);if(Array.isArray(x))return x}catch(e){}return[String(v)]};
+const pic=k=>`<div id="${pvId(k)}">${imageList(imgDraft[k]).map((src,i)=>`<a href="${src}" target="_blank" rel="noopener" title="Open picture ${i+1}"><img class="pimg" src="${src}" alt="Chosen picture ${i+1}"></a>`).join('')}</div>`;
 function pickImg(inp){
- const f=inp.files[0],k=inp.dataset.img;if(!f)return;const im=new Image();
- im.onload=()=>{const sc=Math.min(1,900/im.width),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
-  c.getContext('2d').drawImage(im,0,0,c.width,c.height);imgDraft[k]=c.toDataURL('image/jpeg',0.72);
-  const pv=$(pvId(k));if(pv)pv.innerHTML=`<img class="pimg" src="${imgDraft[k]}" alt="Chosen picture">`};
- im.onerror=()=>say('That file could not be read as a picture.');
- im.src=URL.createObjectURL(f);
+ const files=[...(inp.files||[])],k=inp.dataset.img;if(!files.length)return;const prior=Array.isArray(imgDraft[k])?imgDraft[k]:imageList(imgDraft[k]);
+ let pending=files.length,failed=false;const add=src=>{prior.push(src);pending--;if(!pending){imgDraft[k]=prior;const pv=$(pvId(k));if(pv)pv.innerHTML=imageList(imgDraft[k]).map((src,i)=>`<a href="${src}" target="_blank" rel="noopener" title="Open picture ${i+1}"><img class="pimg" src="${src}" alt="Chosen picture ${i+1}"></a>`).join('');}};
+ files.forEach(f=>{if(!f.type.startsWith('image/')){failed=true;pending--;return}const im=new Image();im.onload=()=>{const sc=Math.min(1,1200/im.width),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);c.getContext('2d').drawImage(im,0,0,c.width,c.height);add(c.toDataURL('image/jpeg',0.78));URL.revokeObjectURL(im.src)};im.onerror=()=>{failed=true;pending--;if(!pending)say('One or more pictures could not be read.');};im.src=URL.createObjectURL(f)});
+ if(failed)say('Some selected files were not images.');
 }
 const subOf=(t,uid)=>SUBS.find(x=>x.task_id===t.id&&x.student_id===uid);
 // Weighted result over problems that are MARKED for this student: sum(weight*mark/total)/sum(weight).
@@ -327,23 +334,23 @@ function marksTaskForm(mg){
  return `<div class="card"><h2>Post a problem</h2><label for="tr">Classroom</label><select id="tr">${mg.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select>
  <label for="tt">Title</label><input id="tt"><label for="tx">Problem</label><textarea id="tx" rows="4"></textarea>
  <div class="row"><div><label for="tm">Total marks</label><input id="tm" type="number" min="0" step="any" style="width:130px"></div><div><label for="tw">Weight (default 1)</label><input id="tw" type="number" min="0" step="any" value="1" style="width:130px"></div></div>
- <label for="tf">Picture (optional)</label><input id="tf" type="file" accept="image/*" data-img="task">${pic('task')}
+ <label for="tf">Picture (optional)</label><input id="tf" type="file" accept="image/*" data-img="task" multiple><p class="sub">You can select multiple pictures. Click a preview to open it larger.</p>${pic('task')}
  <div style="margin-top:12px"><button data-act="addtask">Post problem</button></div></div>`;
 }
 function marksCard(r,t,m){
- const head=`<div class="row" style="justify-content:space-between"><h3>${esc(t.title)}</h3><span class="tag">${+t.total} marks · weight ${+t.weight}</span></div>${t.body?`<p style="white-space:pre-wrap;margin:8px 0">${esc(t.body)}</p>`:''}${t.image?`<img class="pimg" src="${t.image}" alt="Problem picture">`:''}<div class="sub">Posted by ${esc(nm(t.author_id))} · ${dts(t.created_at)}</div>`;
+ const head=`<div class="row" style="justify-content:space-between"><h3>${esc(t.title)}</h3><span class="tag">${+t.total} marks · weight ${+t.weight}</span></div>${t.body?`<p style="white-space:pre-wrap;margin:8px 0">${esc(t.body)}</p>`:''}${t.image?imageList(t.image).map((im,i)=>`<a href="${im}" target="_blank" rel="noopener"><img class="pimg" src="${im}" alt="Problem picture ${i+1}"></a>`).join(''):''}<div class="sub">Posted by ${esc(nm(t.author_id))} · ${dts(t.created_at)}</div>`;
  if(m){
   const ids=appr(r).sort((a,b)=>byName(P[a]||{},P[b]||{})),got=ids.filter(i=>subOf(t,i)).length;
   const rows=ids.length?ids.map(i=>{const x=subOf(t,i);
    if(!x)return `<div><span>${esc(nm(i))}</span><span class="sub">Not submitted</span></div>`;
-   return `<div style="align-items:flex-start"><div><b>${esc(nm(i))}</b><div class="sub">Submitted ${dts(x.submitted_at)}</div>${subImg[x.id]?`<img class="pimg" style="max-height:300px" src="${subImg[x.id]}" alt="Solution by ${esc(nm(i))}">`:`<button class="small ghost" data-act="showsub" data-id="${x.id}">View solution</button>`}</div>
+   return `<div style="align-items:flex-start"><div><b>${esc(nm(i))}</b><div class="sub">Submitted ${dts(x.submitted_at)}</div>${subImg[x.id]?imageList(subImg[x.id]).map((im,j)=>`<a href="${im}" target="_blank" rel="noopener"><img class="pimg" style="max-height:300px" src="${im}" alt="Solution picture ${j+1} by ${esc(nm(i))}"></a>`).join(''):`<button class="small ghost" data-act="showsub" data-id="${x.id}">View solution</button>`}</div>
    <div class="row"><input id="mk-${x.id}" type="number" min="0" max="${t.total}" step="any" style="width:90px" value="${x.mark==null?'':x.mark}" aria-label="Mark for ${esc(nm(i))}"><span class="sub">/ ${+t.total}</span><button class="small" data-act="savemark" data-id="${x.id}">${x.mark==null?'Save mark':'Update mark'}</button></div></div>`}).join(''):'<div class="sub">No students yet.</div>';
   return `<div class="card">${head}<details data-d="t-${t.id}"${dop('t-'+t.id)} style="margin-top:10px"><summary><span>Submissions</span><span class="tag">${got} of ${ids.length}</span></summary><div class="list">${rows}</div></details>${isAuth()||t.author_id===me.id?`<div style="margin-top:10px"><button class="small ghost" data-act="deltask" data-id="${t.id}">Delete problem</button></div>`:''}</div>`;
  }
  const x=subOf(t,me.id);let b;
- const mine_img=x?(subImg[x.id]?`<img class="pimg" style="max-height:240px" src="${subImg[x.id]}" alt="Your solution">`:`<button class="small ghost" data-act="showsub" data-id="${x.id}">View my solution</button>`):'';
+ const mine_img=x?(subImg[x.id]?imageList(subImg[x.id]).map((im,j)=>`<a href="${im}" target="_blank" rel="noopener"><img class="pimg" style="max-height:240px" src="${im}" alt="Your solution picture ${j+1}"></a>`).join(''):`<button class="small ghost" data-act="showsub" data-id="${x.id}">View solution</button>`):'';
  if(x&&x.mark!=null)b=`<p class="ok">Marked: ${+x.mark} / ${+t.total}</p>${mine_img}`;
- else b=`${x?`<p class="sub">Submitted ${dts(x.submitted_at)}. Waiting for your teacher to mark it. You can replace it until then.</p>${mine_img}`:''}<label for="sf-${t.id}">${x?'Replace your solution picture':'Upload a picture of your solution'}</label><input id="sf-${t.id}" type="file" accept="image/*" data-img="sub:${t.id}">${pic('sub:'+t.id)}<div style="margin-top:10px"><button class="small" data-act="submitsol" data-id="${t.id}">${x?'Replace solution':'Submit solution'}</button></div>`;
+ else b=`${x?`<p class="sub">Submitted ${dts(x.submitted_at)}. Waiting for your teacher to mark it. You can replace it until then.</p>${mine_img}`:''}<label for="sf-${t.id}">${x?'Replace your solution picture':'Upload a picture of your solution'}</label><input id="sf-${t.id}" type="file" accept="image/*" data-img="sub:${t.id}" multiple>${pic('sub:'+t.id)}<div style="margin-top:10px"><button class="small" data-act="submitsol" data-id="${t.id}">${x?'Replace solution':'Submit solution'}</button></div>`;
  return `<div class="card">${head}<div style="margin-top:10px">${b}</div></div>`;
 }
 function marksView(){
@@ -840,12 +847,12 @@ const ACT={
  async addtask(){const cid=$('tr').value,title=val('tt'),body=val('tx'),total=parseFloat($('tm').value),weight=parseFloat($('tw').value||'1');
   if(!title)return say('Write a title.');if(!body&&!imgDraft.task)return say('Write the problem or add a picture.');
   if(!(total>0))return say('Enter the total marks.');if(!(weight>0))return say('The weight must be more than 0.');
-  await db(sb.from('tasks').insert({classroom_id:cid,title,body,image:imgDraft.task||null,total,weight,author_id:me.id}));imgDraft.task=null;say('Problem posted.');await refresh()},
+  await db(sb.from('tasks').insert({classroom_id:cid,title,body,image:imgDraft.task?JSON.stringify(imageList(imgDraft.task)):null,total,weight,author_id:me.id}));imgDraft.task=null;say('Problem posted.');await refresh()},
  async submitsol(el){const id=el.dataset.id,k='sub:'+id,t=TASKS.find(x=>x.id===id);if(!t)return;
   if(!imgDraft[k])return say('Choose a picture of your solution first.');
   const old=subOf(t,me.id);if(old&&old.mark!=null)return say('This solution is already marked.');
-  if(old){await db(sb.from('submissions').update({image:imgDraft[k],submitted_at:new Date().toISOString()}).eq('id',old.id));delete subImg[old.id]}
-  else await db(sb.from('submissions').insert({task_id:id,student_id:me.id,image:imgDraft[k]}));
+  if(old){await db(sb.from('submissions').update({image:JSON.stringify(imageList(imgDraft[k])),submitted_at:new Date().toISOString()}).eq('id',old.id));delete subImg[old.id]}
+  else await db(sb.from('submissions').insert({task_id:id,student_id:me.id,image:JSON.stringify(imageList(imgDraft[k]))}));
   imgDraft[k]=null;say('Solution submitted.');await refresh()},
  async savemark(el){const x=SUBS.find(s=>s.id===el.dataset.id),t=x&&TASKS.find(q=>q.id===x.task_id);if(!x||!t)return;
   const v=parseFloat($('mk-'+x.id).value);if(isNaN(v)||v<0||v>t.total)return say('Enter a mark from 0 to '+t.total+'.');
@@ -888,6 +895,7 @@ const ACT={
  async dlpres(el){const r=await db(sb.from('presentations').select('html').eq('id',el.dataset.id).single());const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([r.data.html],{type:'text/html'}));a.download=((el.dataset.t||'presentation').replace(/[^\w\- ]+/g,'').trim()||'presentation')+'.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000)},
  async delpres(el){if(!confirm('Delete this presentation?'))return;await db(sb.from('presentations').delete().eq('id',el.dataset.id));await refresh()},
  async deluser(el){if(!confirm('Remove '+el.dataset.n+' from the website? This deletes the account and cannot be undone.'))return;await db(sb.rpc('admin_delete_user',{uid:el.dataset.u}));say('Account removed.');await refresh()},
+ async toggleatt(el){const r=R.find(x=>x.id===el.dataset.rid),ss=S.find(x=>x.id===el.dataset.sid),uid=el.dataset.u;if(!r||!ss||!canManage(r))return say('You do not have permission to change this attendance.');const present=A.find(a=>a.session_id===ss.id&&a.user_id===uid);if(present)await db(sb.from('attendance').delete().eq('session_id',ss.id).eq('user_id',uid));else await db(sb.from('attendance').insert({session_id:ss.id,user_id:uid}));say('Attendance updated.');await refresh()},
  async join(el){if(!presentIds({id:el.dataset.id}).includes(me.id))await db(sb.from('attendance').insert({session_id:el.dataset.id,user_id:me.id}));await refresh()}
 };
 document.addEventListener('click',async ev=>{
