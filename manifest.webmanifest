@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "CASTRA — Cassiopeia Academic System",
+  "short_name": "CASTRA",
+  "description": "Academic classroom, attendance, assessments and learning records for Cassiopeia.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a1027",
+  "theme_color": "#0a1027",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ]
+}
