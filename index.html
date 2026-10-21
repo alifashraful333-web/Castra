@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a1027">
 <meta name="description" content="CASTRA — Cassiopeia Academic System for Teaching, Records & Administration">
-<link rel="manifest" href="./manifest-v3.webmanifest">
+<link rel="manifest" href="./manifest.webmanifest">
 <title>CASTRA</title>
-<link rel="icon" href="favicon-v3.png" type="image/png" sizes="64x64">
-<link rel="icon" href="favicon-v3.ico" sizes="any">
-<link rel="apple-touch-icon" href="apple-touch-icon-v3.png">
+<link rel="icon" href="favicon.png" type="image/png" sizes="64x64">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 .quick-access button.card{color:#fff;text-align:left;background:#181d44;border-color:#343c7d}
 .quick-access button.card b{color:#fff}
@@ -218,7 +218,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 let scheduleRows=[],scheduleLoaded=false,scheduleMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),scheduleSelected=new Date().toISOString().slice(0,10),scheduleLoading=false;
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,profileTarget=null,profileData=null,profileBusy=false,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},NT={st:'idle',rows:[],err:'',n:20},achOpen=null,LB={on:true,view:'all',cat:'Consistency',rows:[],total:0,myPoints:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,profileTarget=null,profileData=null,profileBusy=false,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},NT={st:'idle',rows:[],err:'',n:20},achOpen=null,LB={on:true,view:'all',cat:'Consistency',rows:[],total:0,myPoints:0,myWeekStars:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -674,14 +674,15 @@ function lbHTML(){
  const stu=me.role==='student',V=LB.view;
  let h=`<div class="card"><p class="sub" style="margin-top:0">Cosmic Points recognise learning and contribution; they are separate from marks. Only students are ranked. Teachers and authors can view the full leaderboard.</p>`;
  if(stu){
-  h+=`<div class="lb-own-points"><div><span class="profile-eyebrow">YOUR COSMIC POINTS</span><div class="lb-own-number">${Number(LB.myPoints||0).toLocaleString()}</div><div class="sub">Your personal total</div></div><span class="lb-own-star">✦</span></div>`;
-  h+=`<h3 style="margin:18px 0 8px">Top 3 students</h3>`;
-  h+=LB.rows.length?tbl(['Rank','Student','Cosmic Points'],LB.rows.slice(0,3).map(r=>[r.lb_rank,esc(r.lb_name),Number(r.lb_points||0).toLocaleString()])):'<p class="sub">No students to display yet.</p>';
-  h+=`<p class="sub">For privacy, students can see only the top three rankings and their own Cosmic Points.</p>`;
+  h+=`<div class="hall-tabs" role="group" aria-label="Leaderboard views">${[['all','All-Time Points'],['week','Weekly Stars']].map(v=>`<button class="small" data-act="lbview" data-v="${v[0]}" aria-pressed="${V===v[0]}">${v[1]}</button>`).join('')}</div>`;
+  h+=`<div class="lb-own-points"><div><span class="profile-eyebrow">${V==='week'?'YOUR WEEKLY STARS':'YOUR COSMIC POINTS'}</span><div class="lb-own-number">${Number(V==='week'?LB.myWeekStars:LB.myPoints||0).toLocaleString()}</div><div class="sub">${V==='week'?'Current week · Sunday–Saturday':'Your personal all-time total'}</div></div><span class="lb-own-star">✦</span></div>`;
+  h+=`<h3 style="margin:18px 0 8px">Top 3 students${V==='week'?' · Weekly Stars':''}</h3>`;
+  h+=LB.rows.length?tbl(['Rank','Student',V==='week'?'Weekly Stars':'Cosmic Points'],LB.rows.slice(0,3).map(r=>[r.lb_rank,esc(r.lb_name),Number(r.lb_points||0).toLocaleString()])):'<p class="sub">No students to display yet.</p>';
+  h+=`<p class="sub">For privacy, students can see only the top three rankings and their own totals. Weekly Stars count net Cosmic Points recorded from Sunday through Saturday (Asia/Dhaka time).</p>`;
  }else{
-  h+=`<div class="hall-tabs" role="group" aria-label="Leaderboard views">${[['all','All-Time Leaderboard'],['month','Monthly Stars'],['miles','Learning Milestones']].map(v=>`<button class="small" data-act="lbview" data-v="${v[0]}" aria-pressed="${V===v[0]}">${v[1]}</button>`).join('')}</div>`;
-  h+=V==='all'?'<p class="sub">Ranked by net valid Cosmic Points, including authorized adjustments and reversals.</p>':V==='month'?'<p class="sub">Ranked by net Cosmic Points earned this calendar month (Asia/Dhaka time).</p>':`<p class="sub">Students with the most achievements in a category. This recognises learning milestones, not grades.</p><div class="row" style="margin-bottom:8px"><label for="lb-c" class="sub" style="margin:0">Category</label><select id="lb-c" data-lb="cat" style="width:auto">${CATS.map(c=>`<option value="${esc(c)}"${LB.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></div>`;
-  h+=LB.rows.length?tbl(V==='miles'?['Rank','Student','Achievements','Cosmic Points']:['Rank','Student','Cosmic Points','Achievements'],LB.rows.map(r=>[r.lb_rank,esc(r.lb_name)+(r.lb_is_me?' <span class="tag">you</span>':''),V==='miles'?Number(r.lb_count||0):Number(r.lb_points||0).toLocaleString(),V==='miles'?Number(r.lb_points||0).toLocaleString():Number(r.lb_achievements||0)])):'<p class="sub">No leaderboard entries yet.</p>';
+  h+=`<div class="hall-tabs" role="group" aria-label="Leaderboard views">${[['all','All-Time Leaderboard'],['week','Weekly Stars'],['month','Monthly Stars'],['miles','Learning Milestones']].map(v=>`<button class="small" data-act="lbview" data-v="${v[0]}" aria-pressed="${V===v[0]}">${v[1]}</button>`).join('')}</div>`;
+  h+=V==='all'?'<p class="sub">Ranked by net valid Cosmic Points, including authorized adjustments and reversals.</p>':V==='week'?'<p class="sub">Weekly Stars are net Cosmic Points recorded from Sunday through Saturday, using Asia/Dhaka time. A new week begins every Sunday; all-time totals are unchanged.</p>':V==='month'?'<p class="sub">Ranked by net Cosmic Points earned this calendar month (Asia/Dhaka time).</p>':`<p class="sub">Students with the most achievements in a category. This recognises learning milestones, not grades.</p><div class="row" style="margin-bottom:8px"><label for="lb-c" class="sub" style="margin:0">Category</label><select id="lb-c" data-lb="cat" style="width:auto">${CATS.map(c=>`<option value="${esc(c)}"${LB.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></div>`;
+  h+=LB.rows.length?tbl(V==='miles'?['Rank','Student','Achievements','Cosmic Points']:V==='week'?['Rank','Student','Weekly Stars']:['Rank','Student','Cosmic Points','Achievements'],LB.rows.map(r=>V==='miles'?[r.lb_rank,esc(r.lb_name)+(r.lb_is_me?' <span class="tag">you</span>':''),Number(r.lb_count||0),Number(r.lb_points||0).toLocaleString()]:[r.lb_rank,esc(r.lb_name)+(r.lb_is_me?' <span class="tag">you</span>':''),Number(r.lb_points||0).toLocaleString(),...(V==='week'?[]:[Number(r.lb_achievements||0)])])):'<p class="sub">No leaderboard entries yet.</p>';
   h+=`<p class="sub" style="margin-top:12px">All student accounts are included automatically, including new members with zero points.</p>`;
  }
  return h+'</div>';
@@ -692,13 +693,19 @@ async function lbLoad(append){
  LB.on=true;
  const stu=me.role==='student';
  if(stu){
-  LB.view='all';
+  const view=LB.view==='week'?'week':'all';
   const [ranked,summary]=await Promise.all([
-   db(sb.rpc('get_leaderboard',{p_period:'all',p_limit:3,p_offset:0})),
+   db(sb.rpc(view==='week'?'get_weekly_stars':'get_leaderboard',view==='week'?{p_limit:3,p_offset:0}:{p_period:'all',p_limit:3,p_offset:0})),
    db(sb.rpc('get_profile_summary',{p_user:me.id}))
   ]);
   LB.myPoints=Number(summary.data&&summary.data.cosmic_points||0);
   const rows=(ranked.data||[]).slice(0,3);
+  if(view==='week'){
+   const mine=rows.find(x=>String(x.lb_user_id)===String(me.id));
+   // The RPC returns the viewer's own total separately when they are outside the top three.
+   const own=await db(sb.rpc('get_my_weekly_stars'));
+   LB.myWeekStars=Number(own.data&&((Array.isArray(own.data)?own.data[0]:own.data)||{}).weekly_stars||0);
+  }
   const ids=new Set(rows.map(x=>String(x.lb_user_id)));
   const extras=Object.values(P).filter(u=>u.role==='student'&&!ids.has(String(u.id))).map(u=>({lb_user_id:u.id,lb_rank:0,lb_name:u.name||'Student',lb_points:0,lb_achievements:0,lb_count:0,lb_is_me:u.id===me.id,lb_total:0}));
   const combined=rows.concat(extras).sort((a,b)=>Number(b.lb_points||0)-Number(a.lb_points||0)||Number(b.lb_achievements||0)-Number(a.lb_achievements||0)||String(a.lb_name||'').localeCompare(String(b.lb_name||''),undefined,{sensitivity:'base'})).slice(0,3);
@@ -708,7 +715,9 @@ async function lbLoad(append){
  while(true){
   const result=LB.view==='miles'
    ? await db(sb.rpc('get_milestones',{p_category:LB.cat,p_limit:pageSize,p_offset:offset}))
-   : await db(sb.rpc('get_leaderboard',{p_period:LB.view==='month'?'month':'all',p_limit:pageSize,p_offset:offset}));
+   : LB.view==='week'
+    ? await db(sb.rpc('get_weekly_stars',{p_limit:pageSize,p_offset:offset}))
+    : await db(sb.rpc('get_leaderboard',{p_period:LB.view==='month'?'month':'all',p_limit:pageSize,p_offset:offset}));
   const batch=result.data||[];all.push(...batch);
   if(batch.length<pageSize)break;
   offset+=pageSize;
