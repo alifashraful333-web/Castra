@@ -199,6 +199,8 @@ input[type="file"]::file-selector-button:hover{background:linear-gradient(135deg
 .cassiopeia-person-name{font-weight:650;overflow-wrap:anywhere}.cassiopeia-person-sub{font-size:.76rem;color:var(--muted);overflow-wrap:anywhere}
 .cassiopeia-assign{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,.8fr) auto;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 @media(max-width:760px){.cassiopeia-groups{grid-template-columns:1fr}.cassiopeia-assign{grid-template-columns:1fr}.cassiopeia-assign select{width:100%}}
+.lb-own-points{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(120deg,#171f49,#111a37);margin:14px 0}.lb-own-number{font-size:2rem;font-weight:800;line-height:1.2;margin-top:5px}.lb-own-star{font-size:2.5rem;color:var(--star)}
+.members-staff{margin-top:18px}.members-staff-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.members-staff .cassiopeia-person{border-top:1px solid var(--line);padding:12px 0}.member-role{display:inline-flex;align-items:center;white-space:nowrap;border:1px solid #4768a7;border-radius:999px;padding:3px 9px;font-size:.75rem;color:#c5d7ff;background:#1a2b53}.member-role-author{border-color:#8a6b39;color:#ffe1a0;background:#3a2b1a}.cassiopeia-person-details{min-width:0;flex:1}
 
 
 </style>
@@ -216,7 +218,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 let scheduleRows=[],scheduleLoaded=false,scheduleMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),scheduleSelected=new Date().toISOString().slice(0,10),scheduleLoading=false;
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,profileTarget=null,profileData=null,profileBusy=false,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},NT={st:'idle',rows:[],err:'',n:20},achOpen=null,LB={on:false,view:'all',cat:'Consistency',rows:[],total:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,profileTarget=null,profileData=null,profileBusy=false,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},NT={st:'idle',rows:[],err:'',n:20},achOpen=null,LB={on:true,view:'all',cat:'Consistency',rows:[],total:0,myPoints:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -330,8 +332,10 @@ function adminView(){
 }
 function membersView(){
  const groups=['Cassiopeia Core','Cassiopeia Alpha','Cassiopeia Beta'];
- const students=Object.values(P).filter(u=>u.role==='student');
- return `<div><span class="profile-eyebrow">CASSIOPEIA COMMUNITY</span><h2>Members</h2><p class="sub">Meet the students across Cassiopeia’s three membership groups.</p></div><div class="cassiopeia-groups">${groups.map(g=>{const rows=students.filter(u=>u.cassiopeia_group===g).sort(byName);return `<section class="cassiopeia-group"><h3>${g}</h3><div class="group-count">${rows.length} member${rows.length===1?'':'s'}</div>${rows.length?rows.map(u=>`<div class="cassiopeia-person"><div class="cassiopeia-avatar">${esc((u.name||'?').trim().split(/\s+/).map(x=>x[0]||'').slice(0,2).join('').toUpperCase())}</div><div><div class="cassiopeia-person-name">${esc(u.name||'Student')}</div>${u.institution?`<div class="cassiopeia-person-sub">${esc(u.institution)}</div>`:''}</div></div>`).join(''):'<p class="sub">No members assigned yet.</p>'}</section>`}).join('')}</div>`;
+ const all=Object.values(P),students=all.filter(u=>u.role==='student');
+ const staff=all.filter(u=>u.role==='teacher'||u.role==='author').sort((a,b)=>((a.role==='author'?0:1)-(b.role==='author'?0:1))||byName(a,b));
+ const person=u=>`<div class="cassiopeia-person"><div class="cassiopeia-avatar">${esc((u.name||'?').trim().split(/\s+/).map(x=>x[0]||'').slice(0,2).join('').toUpperCase())}</div><div class="cassiopeia-person-details"><div class="cassiopeia-person-name">${esc(u.name||'CASTRA Member')}</div>${u.institution?`<div class="cassiopeia-person-sub">${esc(u.institution)}</div>`:''}</div><span class="member-role ${u.role==='author'?'member-role-author':''}">${u.role==='author'?'Author':'Teacher'}</span></div>`;
+ return `<div><span class="profile-eyebrow">CASSIOPEIA COMMUNITY</span><h2>Members</h2><p class="sub">Meet the students across Cassiopeia’s three membership groups, alongside the teachers and author.</p></div><div class="cassiopeia-groups">${groups.map(g=>{const rows=students.filter(u=>u.cassiopeia_group===g).sort(byName);return `<section class="cassiopeia-group"><h3>${g}</h3><div class="group-count">${rows.length} member${rows.length===1?'':'s'}</div>${rows.length?rows.map(u=>`<div class="cassiopeia-person"><div class="cassiopeia-avatar">${esc((u.name||'?').trim().split(/\s+/).map(x=>x[0]||'').slice(0,2).join('').toUpperCase())}</div><div class="cassiopeia-person-details"><div class="cassiopeia-person-name">${esc(u.name||'Student')}</div>${u.institution?`<div class="cassiopeia-person-sub">${esc(u.institution)}</div>`:''}</div></div>`).join(''):'<p class="sub">No members assigned yet.</p>'}</section>`}).join('')}</div><section class="card members-staff"><div class="members-staff-head"><div><span class="profile-eyebrow">COMMUNITY LEADERSHIP</span><h3 style="margin:3px 0 0">Teachers &amp; Author</h3></div><span class="group-count">${staff.length} member${staff.length===1?'':'s'}</span></div>${staff.length?staff.map(person).join(''):'<p class="sub">No teachers or author accounts found.</p>'}</section>`;
 }
 function recordsView(){
  const mg=R.filter(canManage),vis=new Set(R.filter(mine).map(r=>r.id)),rs=REC.filter(x=>vis.has(x.classroom_id)).sort((a,b)=>String(b.updated_at).localeCompare(String(a.updated_at)));
@@ -667,26 +671,57 @@ function adminAch(){
  <h3 style="margin:18px 0 6px">Audit log</h3>${tbl(['When','Who','Action','Details'],ACH.audit.map(a=>[dts(a.created_at),esc(nm(a.actor)),esc(AUD[a.action]||a.action),esc(auditText(a))]))}</div>${defAdmin()}<div class="card">${certAdmin()}</div>`;
 }
 function lbHTML(){
- const stu=me.role==='student',on=LB.on,V=LB.view;
- let h=`<div class="card"><p class="sub" style="margin-top:0">Rankings show only a name and recognition points or achievement counts. Attendance, marks, certificates and institutions are never shown. Cosmic Points are separate from marks, and only students are ranked.</p>`;
- if(!on)h+=`<p><b>The leaderboard is turned off.</b></p>${isAuth()?'':'<p class="sub">It appears here if the authors turn it on.</p>'}`;
- else{
+ const stu=me.role==='student',V=LB.view;
+ let h=`<div class="card"><p class="sub" style="margin-top:0">Cosmic Points recognise learning and contribution; they are separate from marks. Only students are ranked. Teachers and authors can view the full leaderboard.</p>`;
+ if(stu){
+  h+=`<div class="lb-own-points"><div><span class="profile-eyebrow">YOUR COSMIC POINTS</span><div class="lb-own-number">${Number(LB.myPoints||0).toLocaleString()}</div><div class="sub">Your personal total</div></div><span class="lb-own-star">✦</span></div>`;
+  h+=`<h3 style="margin:18px 0 8px">Top 3 students</h3>`;
+  h+=LB.rows.length?tbl(['Rank','Student','Cosmic Points'],LB.rows.slice(0,3).map(r=>[r.lb_rank,esc(r.lb_name),Number(r.lb_points||0).toLocaleString()])):'<p class="sub">No students to display yet.</p>';
+  h+=`<p class="sub">For privacy, students can see only the top three rankings and their own Cosmic Points.</p>`;
+ }else{
   h+=`<div class="hall-tabs" role="group" aria-label="Leaderboard views">${[['all','All-Time Leaderboard'],['month','Monthly Stars'],['miles','Learning Milestones']].map(v=>`<button class="small" data-act="lbview" data-v="${v[0]}" aria-pressed="${V===v[0]}">${v[1]}</button>`).join('')}</div>`;
-  h+=V==='all'?'<p class="sub">Ranked by the net valid Cosmic Points a student has earned, counting revocations as reversals.</p>':V==='month'?'<p class="sub">Ranked by net Cosmic Points earned this calendar month (Asia/Dhaka time). A revoked award cancels out in the month it was earned.</p>':`<p class="sub">Students with the most achievements in a category. This recognises learning milestones. It is not a grade ranking.</p><div class="row" style="margin-bottom:8px"><label for="lb-c" class="sub" style="margin:0">Category</label><select id="lb-c" data-lb="cat" style="width:auto">${CATS.map(c=>`<option value="${esc(c)}"${LB.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></div>`;
-  h+=LB.rows.length?tbl(V==='miles'?['Rank','Name','Achievements','Cosmic Points']:['Rank','Name','Cosmic Points','Achievements'],LB.rows.map(r=>[r.lb_rank,esc(r.lb_name)+(r.lb_is_me?' <span class="tag">you</span>':''),V==='miles'?r.lb_count:r.lb_points,V==='miles'?r.lb_points:r.lb_achievements]))+(LB.rows.length<LB.total?'<div style="margin-top:10px"><button class="small ghost" data-act="lbmore">Show more</button></div>':''):'<p class="sub">No rankings to show yet. Rankings appear once at least 3 participating students have earned points in this view.</p>';
-  if(stu)h+=`<p class="sub" style="margin-top:12px">${me.leaderboard_opt_out?'You are hidden from the rankings.':'Your name can appear in the rankings.'}</p><button class="small ghost" data-act="lbopt">${me.leaderboard_opt_out?'Show me in the rankings':'Hide me from the rankings'}</button>`;
-  else h+='<p class="sub" style="margin-top:12px">Teachers and authors are not ranked.</p>';
+  h+=V==='all'?'<p class="sub">Ranked by net valid Cosmic Points, including authorized adjustments and reversals.</p>':V==='month'?'<p class="sub">Ranked by net Cosmic Points earned this calendar month (Asia/Dhaka time).</p>':`<p class="sub">Students with the most achievements in a category. This recognises learning milestones, not grades.</p><div class="row" style="margin-bottom:8px"><label for="lb-c" class="sub" style="margin:0">Category</label><select id="lb-c" data-lb="cat" style="width:auto">${CATS.map(c=>`<option value="${esc(c)}"${LB.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></div>`;
+  h+=LB.rows.length?tbl(V==='miles'?['Rank','Student','Achievements','Cosmic Points']:['Rank','Student','Cosmic Points','Achievements'],LB.rows.map(r=>[r.lb_rank,esc(r.lb_name)+(r.lb_is_me?' <span class="tag">you</span>':''),V==='miles'?Number(r.lb_count||0):Number(r.lb_points||0).toLocaleString(),V==='miles'?Number(r.lb_points||0).toLocaleString():Number(r.lb_achievements||0)])):'<p class="sub">No leaderboard entries yet.</p>';
+  h+=`<p class="sub" style="margin-top:12px">All student accounts are included automatically, including new members with zero points.</p>`;
  }
- if(isAuth())h+=`<div style="margin-top:12px"><button class="small" data-act="lbtoggle">${on?'Turn the leaderboard off':'Turn the leaderboard on'}</button></div>`;
- else if(stu&&!on)h+=`<div style="margin-top:12px"><button class="small ghost" data-act="lbopt">${me.leaderboard_opt_out?'Show me in the rankings if it is turned on':'Hide me from the rankings if it is turned on'}</button></div>`;
  return h+'</div>';
 }
 async function lbLoad(append){
- const st=await db(sb.from('app_settings').select('*').eq('key','leaderboard'));
- LB.on=!!(st.data[0]&&st.data[0].value&&st.data[0].value.enabled);
- if(!LB.on){LB.rows=[];LB.total=0;return}
- const off=append?LB.rows.length:0,r=LB.view==='miles'?await db(sb.rpc('get_milestones',{p_category:LB.cat,p_limit:20,p_offset:off})):await db(sb.rpc('get_leaderboard',{p_period:LB.view==='month'?'month':'all',p_limit:20,p_offset:off}));
- LB.rows=append?LB.rows.concat(r.data):r.data;LB.total=r.data.length?+r.data[0].lb_total:(append?LB.total:0);if(LB.view!=='miles'){const seen=new Set(LB.rows.map(x=>String(x.lb_name||'').trim().toLowerCase()).filter(Boolean));const extras=Object.values(P).filter(u=>u.role==='student'&&!u.leaderboard_opt_out&&!seen.has(String(u.name||'Student').trim().toLowerCase())).map(u=>({lb_user_id:u.id,lb_rank:0,lb_name:u.name||'Student',lb_points:0,lb_achievements:0,lb_count:0,lb_is_me:u.id===me.id,lb_total:0}));LB.rows=LB.rows.concat(extras);LB.rows.forEach((x,i)=>{x.lb_rank=i+1;x.lb_total=LB.rows.length});LB.total=LB.rows.length;}
+ // The leaderboard is permanent. Students request only the top three from the server;
+ // teachers/authors can request every page of the full ranking.
+ LB.on=true;
+ const stu=me.role==='student';
+ if(stu){
+  LB.view='all';
+  const [ranked,summary]=await Promise.all([
+   db(sb.rpc('get_leaderboard',{p_period:'all',p_limit:3,p_offset:0})),
+   db(sb.rpc('get_profile_summary',{p_user:me.id}))
+  ]);
+  LB.myPoints=Number(summary.data&&summary.data.cosmic_points||0);
+  const rows=(ranked.data||[]).slice(0,3);
+  const ids=new Set(rows.map(x=>String(x.lb_user_id)));
+  const extras=Object.values(P).filter(u=>u.role==='student'&&!ids.has(String(u.id))).map(u=>({lb_user_id:u.id,lb_rank:0,lb_name:u.name||'Student',lb_points:0,lb_achievements:0,lb_count:0,lb_is_me:u.id===me.id,lb_total:0}));
+  const combined=rows.concat(extras).sort((a,b)=>Number(b.lb_points||0)-Number(a.lb_points||0)||Number(b.lb_achievements||0)-Number(a.lb_achievements||0)||String(a.lb_name||'').localeCompare(String(b.lb_name||''),undefined,{sensitivity:'base'})).slice(0,3);
+  LB.rows=combined.map((x,i)=>({...x,lb_rank:i+1}));LB.total=LB.rows.length;return;
+ }
+ const pageSize=20,all=[];let offset=0;
+ while(true){
+  const result=LB.view==='miles'
+   ? await db(sb.rpc('get_milestones',{p_category:LB.cat,p_limit:pageSize,p_offset:offset}))
+   : await db(sb.rpc('get_leaderboard',{p_period:LB.view==='month'?'month':'all',p_limit:pageSize,p_offset:offset}));
+  const batch=result.data||[];all.push(...batch);
+  if(batch.length<pageSize)break;
+  offset+=pageSize;
+  if(offset>20000)throw new Error('Leaderboard is too large to load in one request.');
+ }
+ const byId=new Map();
+ for(const x of all){const id=String(x.lb_user_id||x.user_id||x.lb_name);if(!byId.has(id))byId.set(id,x)}
+ for(const u of Object.values(P).filter(u=>u.role==='student')){
+  const id=String(u.id);if(!byId.has(id))byId.set(id,{lb_user_id:u.id,lb_rank:0,lb_name:u.name||'Student',lb_points:0,lb_achievements:0,lb_count:0,lb_is_me:u.id===me.id,lb_total:0});
+ }
+ const combined=[...byId.values()];
+ combined.sort((a,b)=>(LB.view==='miles'?Number(b.lb_count||0)-Number(a.lb_count||0):Number(b.lb_points||0)-Number(a.lb_points||0))||Number(b.lb_achievements||0)-Number(a.lb_achievements||0)||String(a.lb_name||'').localeCompare(String(b.lb_name||''),undefined,{sensitivity:'base'}));
+ LB.rows=combined.map((x,i)=>({...x,lb_rank:i+1,lb_is_me:String(x.lb_user_id)===String(me.id)}));LB.total=LB.rows.length;
 }
 const ruleTxt=r=>r&&r.metric?`${MLAB[r.metric]||r.metric} at least ${r.min}${r.and?' and '+(MLAB[r.and.metric]||r.and.metric)+' at least '+r.and.min:''}`:(r&&r.min_sample?'minimum sample '+r.min_sample+' per group':'none');
 function defDiff(o,p){
@@ -950,8 +985,6 @@ const ACT={
   catch(e){say('Could not post notice: '+(e.message||String(e))) }},
  async noticedel(el){if(!confirm('Delete this notice?'))return;await db(sb.from('notices').delete().eq('id',el.dataset.id));say('Notice deleted.');await noticeLoad()},
  achretry(){return achLoad()},
- async lbtoggle(){await db(sb.rpc('set_leaderboard_enabled',{p_on:!LB.on}));say(LB.on?'Leaderboard turned off.':'Leaderboard turned on.');await achLoad()},
- async lbopt(){await db(sb.rpc('set_my_leaderboard_opt_out',{p_out:!me.leaderboard_opt_out}));await load();say(me.leaderboard_opt_out?'You are hidden from the rankings.':'You can appear in the rankings.');await achLoad()},
  async lbview(el){LB.view=el.dataset.v;await lbLoad(false);render()},
  async lbmore(){await lbLoad(true);render()},
  halltab(el){hallTab=el.dataset.v;render()},
