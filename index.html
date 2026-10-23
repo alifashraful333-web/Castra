@@ -236,7 +236,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 let scheduleRows=[],scheduleLoaded=false,scheduleMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),scheduleSelected=new Date().toISOString().slice(0,10),scheduleLoading=false;
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
-let me=null,profileTarget=null,profileData=null,profileBusy=false,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},NT={st:'idle',rows:[],err:'',n:20},achOpen=null,LB={on:true,view:'all',cat:'Consistency',rows:[],total:0,myPoints:0,myWeekStars:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
+let me=null,profileTarget=null,profileData=null,profileBusy=false,profileRequestToken=0,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},NT={st:'idle',rows:[],err:'',n:20},achOpen=null,LB={on:true,view:'all',cat:'Consistency',rows:[],total:0,myPoints:0,myWeekStars:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
 const ins=id=>P[id]&&P[id].institution?P[id].institution:'';
@@ -922,7 +922,23 @@ function resView(){
  return `<h2>Resources</h2>${f}${blocks||'<div class="card sub">No resources yet.</div>'}`;
 }
 async function profileLoad(uid){
- if(!me||!uid)return;profileBusy=true;try{const r=await db(sb.rpc('get_profile_summary',{p_user:uid}));profileData=r.data||null;}catch(e){profileData={error:e.message||String(e)}}finally{profileBusy=false;if(tab==='profile')render()}
+ if(!me||!uid)return;
+ // Ignore stale responses if the author clicks another member before this request finishes.
+ const requestToken=++profileRequestToken;
+ profileBusy=true;
+ try{
+  const r=await db(sb.rpc('get_profile_summary',{p_user:uid}));
+  if(requestToken!==profileRequestToken)return;
+  profileData=r.data||{error:'The profile request returned no data. Please try again.'};
+ }catch(e){
+  if(requestToken!==profileRequestToken)return;
+  profileData={error:e.message||String(e)};
+ }finally{
+  if(requestToken===profileRequestToken){
+   profileBusy=false;
+   if(tab==='profile'&&profileTarget===uid)render();
+  }
+ }
 }
 function profileView(){
  const uid=profileTarget||me.id,own=uid===me.id,canView=own||isAuth();if(!canView)return '<h2>Profile</h2><div class="card">You do not have permission to view this profile.</div>';
