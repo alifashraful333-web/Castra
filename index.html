@@ -294,7 +294,7 @@ function dashView(){
 }
 function studentsView(){
  const all=Object.values(P).sort(byName);
- const col=(t,l)=>`<div><h3 style="margin-bottom:8px">${t} (${l.length})</h3><div class="card list">${l.length?l.map(u=>`<div><div>${isAuth()?`<button class="profile-name" data-act="viewprofile" data-id="${u.id}">${esc(u.name)}</button>`:esc(u.name)}<div class="sub">${esc(u.institution||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':''}</div>`).join(''):'<div class="sub">None yet.</div>'}</div></div>`;
+ const col=(t,l)=>`<div><h3 style="margin-bottom:8px">${t} (${l.length})</h3><div class="card list">${l.length?l.map(u=>`<div><div>${isAuth()?`<button type="button" class="profile-name" data-act="viewprofile" data-id="${u.id}" aria-label="Open profile for ${esc(u.name)}">${esc(u.name)}</button>`:esc(u.name)}<div class="sub">${esc(u.institution||'')}</div></div>${u.role==='author'?'<span class="tag">author</span>':''}</div>`).join(''):'<div class="sub">None yet.</div>'}</div></div>`;
  return `<h2>Students &amp; Teachers</h2><div class="cols">${col('Students',all.filter(u=>u.role==='student'))}${col('Teachers',all.filter(u=>u.role!=='student'))}</div>`;
 }
 function roomsView(){
@@ -1145,8 +1145,31 @@ const ACT={
  async toggleatt(el){const r=R.find(x=>x.id===el.dataset.rid),ss=S.find(x=>x.id===el.dataset.sid),uid=el.dataset.u;if(!r||!ss||!uid||!canManage(r))return say('You do not have permission to change this attendance.');const present=A.some(a=>a.session_id===ss.id&&a.user_id===uid);if(present){const result=await db(sb.from('attendance').delete().eq('session_id',ss.id).eq('user_id',uid).select('session_id,user_id'));if(!result.data||result.data.length===0)throw new Error('Supabase did not delete the attendance row. Check the attendance DELETE policy.');await refresh();say('Marked absent.')}else{await db(sb.from('attendance').insert({session_id:ss.id,user_id:uid}));await refresh();say('Marked present.')}},
  async join(el){if(!presentIds({id:el.dataset.id}).includes(me.id))await db(sb.from('attendance').insert({session_id:el.dataset.id,user_id:me.id}));await refresh()}
 };
+// Profile navigation is handled directly at the app boundary in capture phase.
+// This makes member-name clicks independent of the general data-act dispatcher.
+$('app').addEventListener('click', async ev=>{
+ const el=ev.target instanceof Element ? ev.target.closest('button[data-act="viewprofile"]') : null;
+ if(!el || !ev.currentTarget.contains(el)) return;
+ ev.preventDefault();
+ ev.stopPropagation();
+ ev.stopImmediatePropagation();
+ if(el.disabled) return;
+ if(!isAuth()){say('Only the author can inspect another user profile.');return;}
+ const uid=el.dataset.id;
+ if(!uid){say('Could not open this profile: the member ID is missing.');return;}
+ el.disabled=true;
+ profileTarget=uid;
+ profileData=null;
+ profileBusy=true;
+ tab='profile';
+ openRoom=null;
+ render();
+ try { await profileLoad(uid); }
+ catch(e) { profileBusy=false; profileData={error:e?.message||String(e)}; if(tab==='profile'&&profileTarget===uid)render(); say(profileData.error); }
+}, true);
+
 document.addEventListener('click',async ev=>{
- const el=ev.target.closest('[data-act]');if(!el||el.disabled)return;const f=ACT[el.dataset.act];if(!f)return;
+ const el=ev.target instanceof Element ? ev.target.closest('[data-act]') : null;if(!el||el.disabled)return;const f=ACT[el.dataset.act];if(!f)return;
  if(el.dataset.act==='mode'||el.dataset.act==='totl')ev.preventDefault();
  el.disabled=true;try{await f(el)}catch(e){say(e.message||String(e))}finally{el.disabled=false}
 });
