@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0a1027">
+<meta name="theme-color" content="#080f22">
 <meta name="description" content="CASTRA — Cassiopeia Academic System for Teaching, Records & Administration">
 <link rel="manifest" href="./manifest.webmanifest">
 <title>CASTRA</title>
@@ -203,6 +203,71 @@ input[type="file"]::file-selector-button:hover{background:linear-gradient(135deg
 .lb-own-points{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:18px 20px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(120deg,#171f49,#111a37);margin:14px 0}.lb-own-number{font-size:2rem;font-weight:800;line-height:1.2;margin-top:5px}.lb-own-star{font-size:2.5rem;color:var(--star)}
 .members-staff{margin-top:18px}.members-staff-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.members-staff .cassiopeia-person{border-top:1px solid var(--line);padding:12px 0}.member-role{display:inline-flex;align-items:center;white-space:nowrap;border:1px solid #4768a7;border-radius:999px;padding:3px 9px;font-size:.75rem;color:#c5d7ff;background:#1a2b53}.member-role-author{border-color:#8a6b39;color:#ffe1a0;background:#3a2b1a}.cassiopeia-person-details{min-width:0;flex:1}
 
+
+
+
+/* CASTRA Midnight Navy refinement — visual-only overrides; app logic is unchanged */
+:root:not([data-theme="light"]),:root[data-theme="dark"]{
+  --bg:#080f22;
+  --ink:#eaf0ff;
+  --mut:#b4c2df;
+  --card:#101b35;
+  --line:#293b5e;
+  --acc:#7857e8;
+  --on:#ffffff;
+  --star:#f2cf7a;
+  --warm:#45d7f5;
+  --ok:#72dfb0;
+  --bad:#ff929e;
+}
+html{background:#080f22}
+body{
+  background:
+    radial-gradient(ellipse at 13% 0%,rgba(69,215,245,.075),transparent 36%),
+    radial-gradient(ellipse at 91% 12%,rgba(120,87,232,.095),transparent 34%),
+    linear-gradient(145deg,#080f22 0%,#0b1630 52%,#080f22 100%);
+  background-attachment:fixed;
+  color:#eaf0ff;
+}
+.app{background:transparent}
+aside.side{
+  background:linear-gradient(180deg,rgba(16,27,53,.985),rgba(8,15,34,.99));
+  border-color:#293b5e;
+  box-shadow:8px 0 32px rgba(0,0,0,.14);
+}
+.card{
+  background:linear-gradient(145deg,rgba(16,27,53,.98),rgba(13,23,45,.99));
+  border-color:rgba(105,133,190,.24);
+  box-shadow:0 10px 28px rgba(0,0,0,.12);
+}
+input,select,textarea{
+  background:#0a142b;
+  color:#eaf0ff;
+  border-color:#344765;
+}
+input::placeholder,textarea::placeholder{color:#98a9ca}
+button,.btn{
+  border-color:#7857e8;
+  background:linear-gradient(135deg,#7857e8,#6547ce);
+  color:#fff;
+}
+button.ghost,.btn.ghost{
+  background:rgba(120,87,232,.06);
+  color:#b9adff;
+  border-color:rgba(120,87,232,.42);
+}
+button.ghost:hover,.btn.ghost:hover{background:rgba(120,87,232,.15)}
+nav.menu button[aria-pressed="true"],.tabs button[aria-pressed="true"]{
+  background:#7857e8;color:#fff;border-color:#9279f2;
+}
+a:not(.btn){color:#45d7f5}
+:focus-visible{outline-color:#45d7f5}
+.quick-access button.card{
+  background:linear-gradient(145deg,#152647,#111d38);
+  border-color:#344765;
+}
+.quick-access button.card .sub{color:#c5d4f2}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
