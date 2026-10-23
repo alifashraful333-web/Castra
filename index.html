@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#080f22">
+<meta name="theme-color" content="#0a1027">
 <meta name="description" content="CASTRA — Cassiopeia Academic System for Teaching, Records & Administration">
 <link rel="manifest" href="./manifest.webmanifest">
 <title>CASTRA</title>
@@ -205,78 +205,10 @@ input[type="file"]::file-selector-button:hover{background:linear-gradient(135deg
 
 
 
-
-/* CASTRA Midnight Navy refinement — visual-only overrides; app logic is unchanged */
-:root:not([data-theme="light"]),:root[data-theme="dark"]{
-  --bg:#080f22;
-  --ink:#eaf0ff;
-  --mut:#b4c2df;
-  --card:#101b35;
-  --line:#293b5e;
-  --acc:#7857e8;
-  --on:#ffffff;
-  --star:#f2cf7a;
-  --warm:#45d7f5;
-  --ok:#72dfb0;
-  --bad:#ff929e;
-}
-html{background:#080f22}
-body{
-  background:
-    radial-gradient(ellipse at 13% 0%,rgba(69,215,245,.075),transparent 36%),
-    radial-gradient(ellipse at 91% 12%,rgba(120,87,232,.095),transparent 34%),
-    linear-gradient(145deg,#080f22 0%,#0b1630 52%,#080f22 100%);
-  background-attachment:fixed;
-  color:#eaf0ff;
-}
-.app{background:transparent}
-aside.side{
-  background:linear-gradient(180deg,rgba(16,27,53,.985),rgba(8,15,34,.99));
-  border-color:#293b5e;
-  box-shadow:8px 0 32px rgba(0,0,0,.14);
-}
-.card{
-  background:linear-gradient(145deg,rgba(16,27,53,.98),rgba(13,23,45,.99));
-  border-color:rgba(105,133,190,.24);
-  box-shadow:0 10px 28px rgba(0,0,0,.12);
-}
-input,select,textarea{
-  background:#0a142b;
-  color:#eaf0ff;
-  border-color:#344765;
-}
-input::placeholder,textarea::placeholder{color:#98a9ca}
-button,.btn{
-  border-color:#7857e8;
-  background:linear-gradient(135deg,#7857e8,#6547ce);
-  color:#fff;
-}
-button.ghost,.btn.ghost{
-  background:rgba(120,87,232,.06);
-  color:#b9adff;
-  border-color:rgba(120,87,232,.42);
-}
-button.ghost:hover,.btn.ghost:hover{background:rgba(120,87,232,.15)}
-nav.menu button[aria-pressed="true"],.tabs button[aria-pressed="true"]{
-  background:#7857e8;color:#fff;border-color:#9279f2;
-}
-a:not(.btn){color:#45d7f5}
-:focus-visible{outline-color:#45d7f5}
-.quick-access button.card{
-  background:linear-gradient(145deg,#152647,#111d38);
-  border-color:#344765;
-}
-.quick-access button.card .sub{color:#c5d4f2}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}}
-
-
-/* CASTRA custom live meetings */
-.call-page{max-width:1500px;margin:0 auto}.call-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:16px}.call-head h2{font-size:1.7rem;margin:4px 0}.call-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:14px;align-items:stretch}.call-stage{min-width:0}.call-videos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}.call-tile{position:relative;min-height:170px;aspect-ratio:16/10;background:#070d1c;border:1px solid #2c3c60;border-radius:13px;overflow:hidden;display:flex;align-items:center;justify-content:center}.call-tile video{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}.call-tile .call-label{position:absolute;z-index:2;left:10px;bottom:9px;background:#080f22d9;color:#eef4ff;border:1px solid #53678b;border-radius:999px;padding:4px 9px;font-size:.75rem}.call-tile .call-avatar{font-size:2rem;color:#a8b8df}.call-tile video:not([srcObject]){background:#080f22}.call-controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px}.call-controls button{min-width:105px}.call-controls .danger{background:#8e3147;border-color:#c05a70;color:#fff}.call-chat{display:flex;flex-direction:column;min-height:420px;max-height:70vh}.call-chat h3{margin-bottom:8px}.call-chat-messages{flex:1;overflow:auto;min-height:200px;max-height:calc(70vh - 150px);padding:4px 2px}.call-message{padding:9px 0;border-bottom:1px solid #273653;overflow-wrap:anywhere}.call-message .meta{font-size:.72rem;color:#9fb0d7;margin-bottom:3px}.call-message .body{white-space:pre-wrap}.call-chat-compose{display:flex;gap:8px;align-items:flex-end;margin-top:10px}.call-chat-compose textarea{min-height:44px;max-height:110px;resize:vertical}.call-chat-compose button{flex:none}.call-notice{font-size:.8rem;color:#b8c9ee;border:1px solid #34476b;background:#0d1730;border-radius:10px;padding:10px 12px;margin-bottom:12px}.call-error{color:#ffadb8;font-size:.85rem;white-space:pre-wrap}.call-status{display:inline-flex;align-items:center;gap:7px;border:1px solid #2d5f59;border-radius:99px;padding:4px 10px;color:#8ce4c5;font-size:.78rem}.call-status i{width:7px;height:7px;border-radius:50%;background:#54ddb0}.call-controls button[aria-pressed="true"]{background:#293d67;color:#e8efff;border-color:#647eb5}
-@media(max-width:900px){.call-layout{grid-template-columns:1fr}.call-chat{max-height:none;min-height:340px}.call-chat-messages{max-height:350px}.call-tile{min-height:145px}}
-@media(max-width:520px){.call-videos{grid-template-columns:repeat(auto-fit,minmax(145px,1fr))}.call-tile{min-height:125px}.call-controls button{min-width:0;flex:1 1 38%}}
-
+.meet-people-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:8px 0 4px}.meet-person{display:flex;align-items:center;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--card) 90%,var(--acc) 10%);cursor:pointer}.meet-person input{width:17px;height:17px;flex:0 0 auto;accent-color:var(--acc)}.meet-person span{display:flex;flex-direction:column;gap:3px;min-width:0}.meet-person small{color:var(--mut);font-size:.75rem}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@daily-co/daily-js"></script>
 </head>
 <body>
 <div id="app"></div>
@@ -290,6 +222,7 @@ const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 let scheduleRows=[],scheduleLoaded=false,scheduleMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1),scheduleSelected=new Date().toISOString().slice(0,10),scheduleLoading=false,scheduleFormOpen=false;
 let tT;function say(t){const e=$('toast');e.textContent=t||'';e.hidden=!t;clearTimeout(tT);if(t)tT=setTimeout(()=>e.hidden=true,7000)}
 const MEET=/^https:\/\/meet\.google\.com\/[a-z0-9-]+/i;
+let dailyCall=null,meetingRows=[],meetingLoadState='idle',meetingError='',activeMeetingId=null;
 let me=null,profileTarget=null,profileData=null,profileBusy=false,P={},R=[],M=[],S=[],A=[],mail={},REC=[],PRES=[],viewing=null,ACH={st:'idle',err:'',defs:[],aw:[],led:[],certs:[],allCerts:[],prog:{},audit:[]},achF={q:'',cat:'all',st:'all',sort:'recent'},tlF={from:'',to:'',cat:'all'},NT={st:'idle',rows:[],err:'',n:20},achOpen=null,LB={on:true,view:'all',cat:'Consistency',rows:[],total:0,myPoints:0,myWeekStars:0},hallTab='collection',histN=15,celeb=null,awOpen=null,defStep='',defPayload=null,defOpen=null,defDraft={},certOpen=null,certImg={},anTab=null,an={range:'90',room:'all'},anCsv=null,TASKS=[],SUBS=[],imgDraft={},subImg={},BR=[],bd=null,bv=null,pen='black',size=4,tool='pen',saveT=null,saveMsg='',tab='dash',openRoom=null,mode='in',navOpen=innerWidth>=760,RES=[];
 const isAuth=()=>!!me&&me.role==='author';
 const nm=id=>P[id]?P[id].name:'Unknown';
@@ -323,7 +256,7 @@ function authView(){
  <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
-const MENU=[['dash','📊','Dashboard'],['members','✦','Members'],['notice','','Notice'],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule'],['analytics','','Analytics'],['ach','','Achievements'],['admin','⚙️','Administration',0,1]];
+const MENU=[['dash','📊','Dashboard'],['members','✦','Members'],['notice','','Notice'],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['meetings','🎥','Meetings'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule'],['analytics','','Analytics'],['ach','','Achievements'],['admin','⚙️','Administration',0,1]];
 function shell(body){
  return `<button id="burger" data-act="nav" aria-label="Menu" aria-expanded="${navOpen}"><i></i><i></i><i></i></button><div class="app${navOpen?'':' closed'}"><aside class="side"><div class="brand">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>
  <nav class="menu" aria-label="Main menu">${MENU.filter(m=>!m[4]||isAuth()).map(m=>`<button data-act="tab" data-v="${m[0]}" aria-pressed="${tab===m[0]}">${esc(m[2])}${m[3]?' <span class="soon">soon</span>':''}</button>`).join('')}</nav>
@@ -363,11 +296,11 @@ function roomsView(){
 function roomView(){
  const r=R.find(x=>x.id===openRoom);if(!r)return '';
  const m=canManage(r),l=live(r),mem=appr(r),rq=pend(r),past=S.filter(s=>s.classroom_id===r.id&&!s.live);
- const joinBtn=s=>s.link==='castra://internal'?`<button data-act="joinCall" data-id="${s.id}">${presentIds(s).includes(me.id)?'Rejoin meeting':'Join live meeting'}</button>`:`<a class="btn" data-act="join" data-id="${s.id}" href="${esc(s.link)}" target="_blank" rel="noopener">${presentIds(s).includes(me.id)?'Open the class again':'Join class'}</a>`;
+ const joinBtn=s=>`<a class="btn" data-act="join" data-id="${s.id}" href="${esc(s.link)}" target="_blank" rel="noopener">${presentIds(s).includes(me.id)?'Open the class again':'Join class'}</a>`;
  let c;
  if(l&&m)c=`<div class="row"><span class="tag live">Class live</span><span class="sub">Started ${dts(l.started_at)}</span></div><label for="cn">Class name</label><div class="row"><input id="cn" class="grow" value="${esc(l.name)}"><button class="small" data-act="rename" data-id="${l.id}">Save name</button></div>
   <div style="margin:12px 0">${joinBtn(l)}</div><h3 style="margin:12px 0 6px">Present now (${presentIds(l).length})</h3>${presentIds(l).length?presentIds(l).map(i=>`<div>${esc(nm(i))}</div>`).join(''):'<div class="sub">No one has joined yet.</div>'}<div style="margin-top:12px"><button class="ghost" data-act="end" data-id="${l.id}">End class</button></div>`;
- else if(m)c=`<label for="sn">Class name</label><input id="sn" value="${esc(r.name)}"><p class="sub">Starts a CASTRA meeting with camera, microphone, screen sharing, group video, and live chat.</p><div style="margin-top:12px"><button data-act="start" data-id="${r.id}">Start CASTRA meeting</button></div>`;
+ else if(m)c=`<label for="sn">Class name</label><input id="sn" value="${esc(r.name)}"><label for="sl">Google Meet link</label><input id="sl" placeholder="https://meet.google.com/abc-defg-hij"><div style="margin-top:12px"><button data-act="start" data-id="${r.id}">Start class</button></div>`;
  else if(l)c=`<h3>${esc(l.name)}</h3><p class="sub">Your class is live.</p>${presentIds(l).includes(me.id)?'<p class="ok">You are marked present.</p>':''}${joinBtn(l)}`;
  else c='<p class="sub">No class is running right now. Joining happens here once your teacher starts one.</p>';
  if(past.length)c+=`<h3 style="margin:18px 0 6px">Past classes</h3><div class="list">${past.map(s=>`<div><span>${esc(s.name)}<span class="sub"> · ${new Date(s.started_at).toLocaleDateString()}</span></span>${m?`<span class="tag">${presentIds(s).length} present</span>`:`<span class="tag ${presentIds(s).includes(me.id)?'live':''}">${presentIds(s).includes(me.id)?'Present':'Absent'}</span>`}</div>`).join('')}</div>`;
@@ -1006,56 +939,50 @@ function scheduleView(){
  return `<div class="sched-page"><header class="sched-header"><div><span class="profile-eyebrow">PLAN YOUR LEARNING</span><h2>Schedule</h2><p class="sub">A shared calendar for classes, sessions, and upcoming learning.</p></div><div class="row sched-header-actions">${canAdd?`<button class="sched-add-button" data-act="schedtoggle" aria-expanded="${scheduleFormOpen}">＋ Add class</button>`:''}<div class="sched-header-tag">✦ CASTRA CALENDAR</div></div></header>${!canAdd&&me?.role==='teacher'?'<div class="card sub">To schedule a class, ask the author to assign you as a teacher to a classroom first.</div>':''}${form}<div class="sched-stats"><div class="sched-stat"><span>UPCOMING CLASSES</span><b>${scheduleRows.filter(x=>new Date(x.starts_at)>=new Date()).length}</b></div><div class="sched-stat"><span>THIS MONTH</span><b>${scheduleRows.filter(x=>{const d=new Date(x.starts_at);return d.getFullYear()===yy&&d.getMonth()===mm}).length}</b></div><div class="sched-stat"><span>SELECTED DAY</span><b>${events.length}</b></div></div><section class="sched-layout"><div class="card sched-calendar"><div class="sched-monthbar"><button class="ghost" data-act="schedprev" aria-label="Previous month">‹</button><div><h3>${monthName}</h3><span class="sub">Select a date to view classes</span></div><button class="ghost" data-act="schednext" aria-label="Next month">›</button><button class="ghost small" data-act="schedtoday">Today</button></div><div class="sched-weekdays">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(x=>`<span>${x}</span>`).join('')}</div><div class="sched-grid">${cells.join('')}</div><div class="sched-legend"><i></i> Scheduled class <span class="sub">Times shown in your local timezone</span></div></div><div class="card sched-agenda"><div class="sched-agenda-heading"><div><span class="profile-eyebrow">DAILY AGENDA</span><h3>${new Date(scheduleSelected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}</h3></div><span class="tag">${events.length} event${events.length===1?'':'s'}</span></div>${eventHtml}</div></section><p class="sub sched-footnote">Calendar events are separate from completed class sessions and attendance records.</p></div>`;
 }
 async function scheduleLoad(){if(scheduleLoading)return;scheduleLoading=true;try{const q=await db(sb.from('scheduled_classes').select('*').order('starts_at'));scheduleRows=q.data||[];scheduleLoaded=true;}catch(e){scheduleLoaded=false;scheduleRows=[];say('Schedule database setup is required. Run CASTRA_schedule_setup.sql in Supabase.')}finally{scheduleLoading=false;if(tab==='sched')render()}}
+function meetingInviteesHTML(classroomId){
+ const r=R.find(x=>x.id===classroomId);if(!r)return '<p class="sub">Choose a classroom to load its people.</p>';
+ const ids=[...new Set([...M.filter(m=>m.classroom_id===classroomId&&m.status==='approved').map(m=>m.user_id),r.teacher_id].filter(Boolean))].filter(uid=>uid!==me.id&&P[uid]);
+ if(!ids.length)return '<p class="sub">No other approved people are assigned to this classroom yet.</p>';
+ return `<div class="row" style="justify-content:space-between;margin:8px 0"><span class="sub">${ids.length} people available</span><div class="row"><button type="button" class="ghost small" data-act="meetselectall">Select all</button><button type="button" class="ghost small" data-act="meetselectnone">Clear</button></div></div><div class="meet-people-list">${ids.sort((a,b)=>nm(a).localeCompare(nm(b))).map(uid=>`<label class="meet-person"><input type="checkbox" name="meet-invitee" value="${esc(uid)}"><span><b>${esc(nm(uid))}</b><small>${esc(P[uid]?.role||'member')}${ins(uid)?' · '+esc(ins(uid)):''}</small></span></label>`).join('')}</div>`;
+}
+function meetingsView(){
+ const manageable=R.filter(r=>canManage(r));
+ let h=`<div class="row" style="justify-content:space-between;align-items:center"><div><h2 style="margin-bottom:4px">Meetings</h2><p class="sub" style="margin-top:0">Private live video meetings. Only people you assign can see and join a meeting. Meetings never count toward class attendance.</p></div><button class="ghost small" data-act="meetrefresh">↻ Refresh</button></div>`;
+ h+=`<div class="card"><h3>Start a meeting</h3><p class="sub">Separate from <b>Classes</b>. Your original Start class process remains unchanged.</p>`;
+ if(!manageable.length) h+=`<p class="sub">Only the author or a teacher assigned to a classroom can start a meeting.</p>`;
+ else {const first=manageable[0].id;h+=`<label for="meet-room">Classroom</label><select id="meet-room" data-meet-room>${manageable.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('')}</select><label for="meet-name">Meeting title</label><input id="meet-name" maxlength="100" placeholder="e.g. Positional Astronomy — Discussion"><label>Assign participants</label><p class="sub">Select the people who should be able to see and join this meeting. Unselected members will not see it.</p><div id="meet-invitees">${meetingInviteesHTML(first)}</div><div style="margin-top:12px"><button data-act="meetstart">Start video meeting</button></div><p class="sub" style="margin-bottom:0">Meetings use Daily's managed video infrastructure. Usage beyond its free allowance may incur charges.</p>`}
+ h+='</div>';
+ if(meetingLoadState==='loading')h+=`<div class="card sub">Loading meetings…</div>`;
+ else if(meetingError)h+=`<div class="card"><p class="sub">${esc(meetingError)}</p><button class="ghost small" data-act="meetrefresh">Try again</button></div>`;
+ else {
+  const live=meetingRows.filter(x=>x.live);
+  h+=`<h3>Live meetings</h3>`;
+  if(!live.length)h+=`<div class="card sub">There are no meetings assigned to you that are live right now.</div>`;
+  for(const x of live){const r=R.find(z=>z.id===x.classroom_id),manager=r&&canManage(r);h+=`<div class="card"><div class="row" style="justify-content:space-between;align-items:center"><div><h3 style="margin:0">${esc(x.name)}</h3><div class="sub">${esc(r?.name||'Classroom')} · Started ${x.started_at?new Date(x.started_at).toLocaleString():''}</div></div><div class="row"><button data-act="meetjoin" data-id="${esc(x.id)}">Join meeting</button>${manager?`<button class="danger small" data-act="meetend" data-id="${esc(x.id)}">End meeting</button>`:''}</div></div></div>`}
+ }
+ if(activeMeetingId)h+=`<div class="card" id="meeting-stage-card"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:10px"><div><h3 style="margin:0">Meeting room</h3><p class="sub" style="margin:4px 0 0">Allow microphone and camera access when your browser asks.</p></div><button class="ghost small" data-act="meetleave">Leave meeting</button></div><div id="daily-meeting-frame" style="width:100%;height:min(72vh,760px);min-height:420px;background:#080f22;border-radius:12px;overflow:hidden"></div></div>`;
+ return h;
+}
+async function meetingsLoad(){meetingLoadState='loading';meetingError='';render();try{const q=await sb.from('castra_meetings').select('*').order('started_at',{ascending:false}).limit(100);if(q.error)throw q.error;meetingRows=q.data||[];meetingLoadState='ready'}catch(e){meetingLoadState='error';meetingError='Meeting database setup is not complete, or access failed. Run CASTRA_Meetings_Setup.sql in Supabase, deploy the castra-meeting Edge Function, then refresh. Details: '+(e.message||String(e))}render()}
+async function meetingInvoke(body){const r=await sb.functions.invoke('castra-meeting',{body});if(r.error)throw r.error;if(r.data?.error)throw new Error(r.data.error);return r.data}
+async function openDailyMeeting(id,action){
+ if(!window.DailyIframe)return say('The video meeting library did not load. Check your internet connection and refresh CASTRA.');
+ const data=await meetingInvoke({action,meeting_id:id});
+ if(dailyCall){try{await dailyCall.destroy()}catch{}dailyCall=null}
+ activeMeetingId=id;render();
+ const mount=$('daily-meeting-frame');if(!mount)return say('Meeting area could not be opened. Select Join meeting again.');
+ dailyCall=DailyIframe.createFrame(mount,{showLeaveButton:true,iframeStyle:{width:'100%',height:'100%',border:'0',borderRadius:'12px'},theme:{colors:{accent:'#7857E8',accentText:'#FFFFFF',background:'#080F22',backgroundAccent:'#101B35',baseText:'#F3F5FF',border:'#263653',mainAreaBg:'#080F22',mainAreaBgAccent:'#101B35',mainAreaText:'#F3F5FF',supportiveText:'#A8B5D0'}}});
+ await dailyCall.join({url:data.url,token:data.token});
+}
+async function leaveDailyMeeting(){if(dailyCall){try{await dailyCall.leave();await dailyCall.destroy()}catch{}dailyCall=null}activeMeetingId=null;render();await meetingsLoad()}
 function page(){
  const m=MENU.find(x=>x[0]===tab)||MENU[0];
- if(tab==='call')return callView();
- if(tab==='sched')return scheduleView();if(tab==='dash')return dashView();if(tab==='members')return membersView();if(tab==='profile')return profileView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();
+ if(tab==='sched')return scheduleView();if(tab==='dash')return dashView();if(tab==='members')return membersView();if(tab==='profile')return profileView();if(tab==='students')return studentsView();if(tab==='rooms')return roomsView();if(tab==='meetings')return meetingsView();
  if(tab==='attend')return attendView();if(tab==='records')return recordsView();if(tab==='pres')return presView();if(tab==='res')return resView();if(tab==='board')return boardPage();if(tab==='marks')return marksView();if(tab==='analytics')return anView();if(tab==='ach')return achView();if(tab==='notice')return noticeView();if(tab==='admin'&&isAuth())return adminView();
  return `<h2>${esc(m[2])}</h2><div class="card"><p>This page is not available yet.</p><p class="sub">It is being moved to the shared database and will return in an update.</p></div>`;
 }
 function render(){const a=$('app');if(me&&bd){a.innerHTML=editorHTML();initCanvas();return}
- a.innerHTML=me?shell(openRoom?roomView():page()):authView();if(me&&bv)initCanvas();if(me&&tab==='ach')awPreview(false);if(me&&tab==='call')bindCallElements()}
-// ==== CASTRA LIVE MEETING ENGINE ==== 
-let activeCallSession=null,callState=null;
-const CALL_ICE={iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]};
-function callView(){
- const ss=activeCallSession||callState?.session;if(!ss)return '<h2>Live meeting</h2><div class="card">Choose a live meeting from your classroom.</div>';
- const room=R.find(r=>r.id===ss.classroom_id),manage=room&&canManage(room);
- const messages=callState?.messages||[];
- return `<div class="call-page"><header class="call-head"><div><span class="profile-eyebrow">CASTRA LIVE</span><h2>${esc(ss.name)}</h2><p class="sub">${esc(room?.name||'Classroom')} · ${esc(me.name)} · Video, screen sharing and chat</p></div><div class="row"><span class="call-status"><i></i>${ss.live?'Meeting live':'Meeting ended'}</span><button class="ghost" data-act="leaveCall">Leave meeting</button>${manage&&ss.live?`<button class="danger" data-act="endCall">End for everyone</button>`:''}</div></header>
- <div class="call-notice">Allow camera and microphone access when prompted. For reliable group calls across restrictive networks, a TURN relay service may also be required. This first version is designed for small groups (around 4–6 participants).</div>
- <div id="call-error" class="call-error" role="status"></div><div class="call-layout"><section class="call-stage"><div id="call-videos" class="call-videos"><div class="call-tile" id="call-local-tile"><video id="call-local-video" autoplay playsinline muted></video><span class="call-label">You · ${esc(me.name)}</span></div></div><div class="call-controls"><button id="call-mic" data-act="callMic" aria-pressed="false">🎙 Mute mic</button><button id="call-camera" data-act="callCamera" aria-pressed="false">📷 Turn camera off</button><button id="call-share" data-act="callShare">▣ Share screen</button></div><p class="sub" style="text-align:center;margin-top:10px">Attendance is recorded when you join. Leaving does not end the class.</p></section>
- <aside class="card call-chat"><h3>Meeting chat</h3><div class="sub">Messages are visible to authorized members of this classroom meeting.</div><div id="call-chat-messages" class="call-chat-messages">${messages.length?messages.map(callMessageHTML).join(''):'<p class="sub">No messages yet. Say hello!</p>'}</div><div class="call-chat-compose"><textarea id="call-message" rows="2" maxlength="2000" placeholder="Write a message…" aria-label="Meeting chat message"></textarea><button data-act="sendCallMessage">Send</button></div></aside></div></div>`;
-}
-function callMessageHTML(m){return `<div class="call-message"><div class="meta">${esc(P[m.user_id]?.name||(m.user_id===me.id?me.name:'Participant'))} · ${esc(dts(m.created_at))}</div><div class="body">${esc(m.body)}</div></div>`}
-function bindCallElements(){if(!callState)return;const v=$('call-local-video');if(v&&callState.localStream&&!callState.sharing&&v.srcObject!==callState.localStream)v.srcObject=callState.localStream;if(v&&callState.sharing&&callState.screenStream&&v.srcObject!==callState.screenStream)v.srcObject=new MediaStream([...callState.localStream.getAudioTracks(),...callState.screenStream.getVideoTracks()]);for(const [uid,stream] of Object.entries(callState.remoteStreams||{}))showRemoteTile(uid,stream);const c=$('call-chat-messages');if(c){c.innerHTML=callState.messages.length?callState.messages.map(callMessageHTML).join(''):'<p class="sub">No messages yet. Say hello!</p>';c.scrollTop=c.scrollHeight}}
-function showRemoteTile(uid,stream){const grid=$('call-videos');if(!grid)return;let tile=$('call-tile-'+uid);if(!tile){tile=document.createElement('div');tile.className='call-tile';tile.id='call-tile-'+uid;const video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.id='call-video-'+uid;const label=document.createElement('span');label.className='call-label';label.textContent=P[uid]?.name||'Participant';tile.append(video,label);grid.append(tile)}const video=$('call-video-'+uid);if(video&&video.srcObject!==stream)video.srcObject=stream}
-function callError(msg){const e=$('call-error');if(e)e.textContent=msg||'';else if(msg)say(msg)}
-async function sendCallSignal(target,kind,payload={}){if(!callState||!target||target===me.id)return;const {error}=await sb.from('call_signals').insert({session_id:callState.session.id,from_user:me.id,target_user:target,kind,payload});if(error)throw error}
-function newPeer(uid){if(callState.pcs[uid])return callState.pcs[uid];const pc=new RTCPeerConnection(CALL_ICE);callState.pcs[uid]=pc;for(const track of callState.localStream.getTracks())pc.addTrack(track,callState.localStream);pc.onicecandidate=e=>{if(e.candidate)sendCallSignal(uid,'ice',e.candidate.toJSON()).catch(err=>callError('Could not send network candidate: '+err.message))};pc.ontrack=e=>{const stream=e.streams&&e.streams[0]?e.streams[0]:new MediaStream([e.track]);callState.remoteStreams[uid]=stream;showRemoteTile(uid,stream)};pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed')callError('A connection to '+(P[uid]?.name||'a participant')+' failed. A TURN relay may be needed on this network.');if(pc.connectionState==='closed'){const tile=$('call-tile-'+uid);if(tile)tile.remove()}};return pc}
-async function flushCallIce(uid,pc){const q=callState?.pendingIce?.[uid]||[];callState.pendingIce[uid]=[];for(const c of q){try{await pc.addIceCandidate(new RTCIceCandidate(c))}catch(e){console.warn('Queued ICE candidate skipped',e)}}}
-async function createCallOffer(uid){if(!callState||callState.pcs[uid])return;const pc=newPeer(uid);if(pc.signalingState!=='stable')return;const offer=await pc.createOffer();await pc.setLocalDescription(offer);await sendCallSignal(uid,'offer',pc.localDescription.toJSON())}
-async function receiveCallSignal(row){if(!callState||row.session_id!==callState.session.id||row.target_user!==me.id)return;const uid=row.from_user,p=row.payload||{};try{if(row.kind==='hello'){await sendCallSignal(uid,'hello_ack',{});return}if(row.kind==='hello_ack'){if(String(me.id)<String(uid))await createCallOffer(uid);return}if(row.kind==='offer'){let pc=callState.pcs[uid]||newPeer(uid);await pc.setRemoteDescription(new RTCSessionDescription(p));await flushCallIce(uid,pc);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await sendCallSignal(uid,'answer',pc.localDescription.toJSON());return}if(row.kind==='answer'){const pc=callState.pcs[uid];if(pc&&pc.signalingState==='have-local-offer'){await pc.setRemoteDescription(new RTCSessionDescription(p));await flushCallIce(uid,pc)}return}if(row.kind==='ice'){const pc=callState.pcs[uid];if(pc){if(pc.remoteDescription)try{await pc.addIceCandidate(new RTCIceCandidate(p))}catch(e){console.warn('ICE candidate skipped',e)}else(callState.pendingIce[uid]||(callState.pendingIce[uid]=[])).push(p)}return}}catch(e){callError('Meeting connection issue: '+(e.message||String(e)))} }
-async function startCall(ss){
- if(callState?.session?.id===ss.id&&callState.localStream)return;
- if(callState)await cleanupCall();
- callState={session:ss,localStream:null,screenStream:null,pcs:{},remoteStreams:{},pendingIce:{},messages:[],mic:true,camera:true,sharing:false,signalChannel:null,chatChannel:null};
- try{
-  if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera and microphone access requires HTTPS and a supported browser. Open CASTRA through its HTTPS website.');
-  callError('Requesting camera and microphone access…');
-  callState.localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});
-  bindCallElements();
-  const ar=await sb.from('attendance').select('user_id').eq('session_id',ss.id);if(ar.error)throw ar.error;
-  if(!(ar.data||[]).some(x=>x.user_id===me.id)){const insr=await sb.from('attendance').insert({session_id:ss.id,user_id:me.id});if(insr.error&&insr.error.code!=='23505')throw insr.error;if(!A.some(x=>x.session_id===ss.id&&x.user_id===me.id))A.push({session_id:ss.id,user_id:me.id})}
-  const chat=await sb.from('call_messages').select('*').eq('session_id',ss.id).order('created_at').limit(100);if(chat.error)throw chat.error;callState.messages=chat.data||[];bindCallElements();
-  callState.signalChannel=sb.channel('castra-signals-'+ss.id+'-'+me.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'call_signals',filter:'session_id=eq.'+ss.id},payload=>receiveCallSignal(payload.new)).subscribe(async status=>{if(status==='SUBSCRIBED'&&callState?.session?.id===ss.id){callError('Connected to CASTRA signalling. Finding other participants…');const ids=[...new Set((ar.data||[]).map(x=>x.user_id).filter(x=>x!==me.id))];for(const uid of ids){try{await sendCallSignal(uid,'hello',{})}catch(e){callError('Signalling setup failed. Run the CASTRA Live Meetings SQL setup and confirm Supabase Realtime is enabled. '+e.message);break}}}});
-  callState.chatChannel=sb.channel('castra-chat-'+ss.id+'-'+me.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'call_messages',filter:'session_id=eq.'+ss.id},payload=>{if(callState?.session?.id!==ss.id)return;const msg=payload.new;if(!callState.messages.some(x=>x.id===msg.id))callState.messages.push(msg);const box=$('call-chat-messages');if(box){box.innerHTML=callState.messages.map(callMessageHTML).join('');box.scrollTop=box.scrollHeight}}).subscribe(status=>{if(status==='CHANNEL_ERROR')callError('Chat realtime is unavailable. Check the SQL setup and Supabase Realtime configuration.')});
-  callError('');bindCallElements();
- }catch(e){callError((e.message||String(e))+'\nIf this persists, confirm the SQL migration has been run in Supabase.');say('Could not start the meeting: '+(e.message||String(e)))}
-}
-async function stopCallShare(){if(!callState?.sharing)return;const cameraTrack=callState.localStream?.getVideoTracks()[0]||null;for(const pc of Object.values(callState.pcs)){const sender=pc.getSenders().find(x=>x.track&&x.track.kind==='video');if(sender)await sender.replaceTrack(cameraTrack)}callState.screenStream?.getTracks().forEach(t=>t.stop());callState.screenStream=null;callState.sharing=false;const v=$('call-local-video');if(v&&callState.localStream)v.srcObject=callState.localStream;const b=$('call-share');if(b)b.textContent='▣ Share screen'}
-async function cleanupCall(){const st=callState;if(!st)return;callState=null;try{st.screenStream?.getTracks().forEach(t=>t.stop());st.localStream?.getTracks().forEach(t=>t.stop());Object.values(st.pcs).forEach(pc=>pc.close());if(st.signalChannel)await sb.removeChannel(st.signalChannel);if(st.chatChannel)await sb.removeChannel(st.chatChannel);await sb.from('call_signals').delete().eq('session_id',st.session.id).or('from_user.eq.'+me.id+',target_user.eq.'+me.id)}catch(e){console.warn('Meeting cleanup',e)} }
-
+ a.innerHTML=me?shell(openRoom?roomView():page()):authView();if(me&&bv)initCanvas();if(me&&tab==='ach')awPreview(false)}
 const ACT={
  mode(){mode=mode==='in'?'up':'in';render()},
  async signup(){
@@ -1070,7 +997,14 @@ const ACT={
   const email=val('e').toLowerCase(),password=$('p').value;if(!email||!password)return say('Enter your email and password.');
   say('');const r=await sb.auth.signInWithPassword({email,password});if(r.error)return say(r.error.message);await enter(r.data.user)},
  async out(){await sb.auth.signOut();me=null;openRoom=null;mode='in';render()},
- tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render();if(tab==='ach'&&ACH.st!=='loading')achLoad();if(tab==='notice'&&NT.st!=='loading')noticeLoad();if(tab==='sched'&&!scheduleLoaded)scheduleLoad();if(tab==='profile')profileLoad(profileTarget||me.id)},
+ tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render();if(tab==='ach'&&ACH.st!=='loading')achLoad();if(tab==='notice'&&NT.st!=='loading')noticeLoad();if(tab==='sched'&&!scheduleLoaded)scheduleLoad();if(tab==='meetings')meetingsLoad();if(tab==='profile')profileLoad(profileTarget||me.id)},
+ async meetrefresh(){await meetingsLoad()},
+ meetselectall(){document.querySelectorAll('input[name="meet-invitee"]').forEach(x=>x.checked=true)},
+ meetselectnone(){document.querySelectorAll('input[name="meet-invitee"]').forEach(x=>x.checked=false)},
+ async meetstart(){const cid=val('meet-room'),name=val('meet-name'),assigned=[...document.querySelectorAll('input[name="meet-invitee"]:checked')].map(x=>x.value);if(!cid)return say('Choose a classroom.');if(!name)return say('Enter a meeting title.');if(!assigned.length)return say('Assign at least one person to this meeting.');try{say('Creating secure meeting…');const d=await meetingInvoke({action:'start',classroom_id:cid,name,assigned_user_ids:assigned});say('');await meetingsLoad();await openDailyMeeting(d.meeting.id,'join')}catch(e){say('Could not start meeting: '+(e.message||String(e))) }},
+ async meetjoin(el){try{say('Joining meeting…');await openDailyMeeting(el.dataset.id,'join');say('')}catch(e){say('Could not join meeting: '+(e.message||String(e))) }},
+ async meetend(el){if(!confirm('End this meeting for everyone?'))return;try{await meetingInvoke({action:'end',meeting_id:el.dataset.id});if(activeMeetingId===el.dataset.id)await leaveDailyMeeting();else await meetingsLoad();say('Meeting ended.')}catch(e){say('Could not end meeting: '+(e.message||String(e))) }},
+ async meetleave(){await leaveDailyMeeting()},
  schedtoggle(){if(!R.some(r=>canManage(r)))return say('You need to be assigned as a teacher to a classroom before scheduling classes.');scheduleFormOpen=!scheduleFormOpen;render()},
  schedprev(){scheduleMonth=new Date(scheduleMonth.getFullYear(),scheduleMonth.getMonth()-1,1);render()},
  schednext(){scheduleMonth=new Date(scheduleMonth.getFullYear(),scheduleMonth.getMonth()+1,1);render()},
@@ -1091,16 +1025,11 @@ const ACT={
  async req(el){await db(sb.from('memberships').insert({classroom_id:el.dataset.id,user_id:me.id,status:'pending'}));await refresh()},
  async approve(el){await db(sb.from('memberships').update({status:'approved'}).eq('classroom_id',el.dataset.id).eq('user_id',el.dataset.u));await refresh()},
  async remove(el){await db(sb.from('memberships').delete().eq('classroom_id',el.dataset.id).eq('user_id',el.dataset.u));await refresh()},
- async start(el){const name=val('sn');if(!name)return say('Enter a class name.');const room=R.find(r=>r.id===el.dataset.id);if(!room||!canManage(room))return say('Only this classroom’s teacher or the author can start a meeting.');if(live(room))return say('A live class is already running in this classroom.');const out=await db(sb.from('class_sessions').insert({classroom_id:el.dataset.id,name,link:'castra://internal',live:true}).select('*').single());S=[out.data,...S];openRoom=null;activeCallSession=out.data;tab='call';render();await startCall(out.data)},
- async joinCall(el){const ss=S.find(x=>x.id===el.dataset.id);if(!ss||!ss.live)return say('This meeting is no longer live. Refresh and try again.');const room=R.find(x=>x.id===ss.classroom_id);if(!room||!mine(room))return say('You must be an approved classroom member to join this meeting.');openRoom=null;activeCallSession=ss;tab='call';render();await startCall(ss)},
+ async start(el){const name=val('sn'),link=val('sl');if(!name)return say('Enter a class name.');
+  if(!MEET.test(link))return say('Paste a Google Meet link that starts with https://meet.google.com/');
+  await db(sb.from('class_sessions').insert({classroom_id:el.dataset.id,name,link,live:true}));await refresh()},
  async rename(el){const name=val('cn');if(!name)return;await db(sb.from('class_sessions').update({name}).eq('id',el.dataset.id));say('Class name saved.');await refresh()},
- async end(el){if(callState&&callState.session&&callState.session.id===el.dataset.id)await cleanupCall();await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));S=S.map(s=>s.id===el.dataset.id?{...s,live:false}:s);activeCallSession=null;tab='rooms';openRoom=el.dataset.id;await refresh()},
- async leaveCall(){await cleanupCall();activeCallSession=null;tab='rooms';render()},
- async endCall(){if(!callState?.session)return;const ss=callState.session,room=R.find(r=>r.id===ss.classroom_id);if(!room||!canManage(room))return say('Only the classroom teacher or author can end the meeting for everyone.');if(!confirm('End this CASTRA meeting for everyone?'))return;await cleanupCall();await db(sb.from('class_sessions').update({live:false}).eq('id',ss.id));S=S.map(s=>s.id===ss.id?{...s,live:false}:s);activeCallSession=null;tab='rooms';openRoom=ss.classroom_id;await refresh()},
- async callMic(){if(!callState)return;callState.mic=!callState.mic;callState.localStream?.getAudioTracks().forEach(t=>t.enabled=callState.mic);const b=$('call-mic');if(b){b.setAttribute('aria-pressed',String(!callState.mic));b.textContent=callState.mic?'🎙 Mute mic':'🔇 Unmute mic'}},
- async callCamera(){if(!callState)return;callState.camera=!callState.camera;callState.localStream?.getVideoTracks().forEach(t=>t.enabled=callState.camera);const b=$('call-camera');if(b){b.setAttribute('aria-pressed',String(!callState.camera));b.textContent=callState.camera?'📷 Turn camera off':'📷 Turn camera on'}},
- async callShare(){if(!callState)return;if(callState.sharing){await stopCallShare();return}try{const stream=await navigator.mediaDevices.getDisplayMedia({video:true});const track=stream.getVideoTracks()[0];callState.screenStream=stream;callState.sharing=true;for(const pc of Object.values(callState.pcs)){const sender=pc.getSenders().find(x=>x.track&&x.track.kind==='video');if(sender)await sender.replaceTrack(track)}const lv=$('call-local-video');if(lv)lv.srcObject=new MediaStream([...callState.localStream.getAudioTracks(),track]);track.onended=()=>stopCallShare().catch(e=>say(e.message));const b=$('call-share');if(b)b.textContent='▣ Stop sharing';say('You are sharing your screen.')}catch(e){say('Screen sharing was cancelled or blocked: '+(e.message||e))}},
- async sendCallMessage(){if(!callState)return;const input=$('call-message'),body=(input?.value||'').trim();if(!body)return;if(body.length>2000)return say('Messages must be 2,000 characters or fewer.');await db(sb.from('call_messages').insert({session_id:callState.session.id,user_id:me.id,body}));if(input)input.value=''},
+ async end(el){await db(sb.from('class_sessions').update({live:false}).eq('id',el.dataset.id));await refresh()},
  nav(){navOpen=!navOpen;render()},
  noticeretry(){return noticeLoad()},
  noticemore(){NT.n+=20;render()},
@@ -1247,6 +1176,7 @@ document.addEventListener('input',ev=>{const t=ev.target;if(!t.closest)return;co
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&(achOpen||certOpen||defOpen||awOpen||celeb)){achOpen=null;certOpen=null;defOpen=null;defStep='';awOpen=null;celeb=null;render()}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target.closest&&ev.target.closest('.auth')&&ev.target.tagName==='INPUT'){const b=document.querySelector('.auth button[data-act]');if(b)b.click()}});
 document.addEventListener('change',async ev=>{
+ if(ev.target.matches&&ev.target.matches('[data-meet-room]')){const box=$('meet-invitees');if(box)box.innerHTML=meetingInviteesHTML(ev.target.value);return}
  const an2=ev.target.closest&&ev.target.closest('[data-an]');if(an2){an[an2.dataset.an]=an2.value;render();return}
  if(ev.target.matches&&ev.target.matches('input[data-img]'))return pickImg(ev.target);
  const mr=ev.target.closest('[data-mrole]');
