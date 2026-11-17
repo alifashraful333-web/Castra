@@ -215,6 +215,7 @@ input[type="file"]::file-selector-button:hover{background:linear-gradient(135deg
 <div id="toast" role="alert" aria-live="assertive" hidden></div>
 <noscript>CASTRA needs JavaScript.</noscript>
 <script>
+const RECOVERY=/type=recovery|error_code=/.test(location.hash);
 const SB_URL='https://nejbzozizrvkvhkxhmpf.supabase.co',SB_KEY='sb_publishable_2lUwsn5dMh_6RD_352rIRQ_KyQ8LWC_';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 const $=id=>document.getElementById(id),val=id=>$(id)?$(id).value.trim():'';
@@ -253,7 +254,7 @@ function fpView(){
  const head=`<div class="brand" style="margin-bottom:18px">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>`;
  const back=`<p class="sub" style="margin:14px 0 0"><a href="#" data-act="fpcancel">Back to log in</a></p>`;
  if(fpStep==='email')return `<div class="auth">${head}<div class="card"><h2>Reset your password</h2><p class="sub" style="margin-top:0">Enter the email address of your CASTRA account. If the account exists, we will email you a verification code.</p><label for="fe">Email</label><input id="fe" type="email" autocomplete="email" value="${esc(fpEmail)}"><div class="row" style="margin-top:14px"><button data-act="fpsend">Send verification code</button></div>${back}</div></div>`;
- if(fpStep==='code')return `<div class="auth">${head}<div class="card"><h2>Enter verification code</h2><p class="sub" style="margin-top:0">If an account exists for <b>${esc(fpEmail)}</b>, a verification code has been sent. Check your inbox (and spam folder) and enter it below.</p><label for="fc">Verification code</label><input id="fc" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Enter the code from your email"><div class="row" style="margin-top:14px"><button data-act="fpverify">Verify code</button><button class="ghost" data-act="fpresend">Resend code</button></div>${back}</div></div>`;
+ if(fpStep==='code')return `<div class="auth">${head}<div class="card"><h2>Enter verification code</h2><p class="sub" style="margin-top:0">If an account exists for <b>${esc(fpEmail)}</b>, a verification code has been sent. Check your inbox (and spam folder) and enter it below.</p><p class="sub">If your email has a <b>Reset password</b> link instead of a code, just click that link. You will be brought back here to choose a new password.</p><label for="fc">Verification code</label><input id="fc" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Enter the code from your email"><div class="row" style="margin-top:14px"><button data-act="fpverify">Verify code</button><button class="ghost" data-act="fpresend">Resend code</button></div>${back}</div></div>`;
  return `<div class="auth">${head}<div class="card"><h2>Choose a new password</h2><p class="sub" style="margin-top:0">Code verified. Set a new password for <b>${esc(fpEmail)}</b>.</p><label for="fp1">New password</label><input id="fp1" type="password" autocomplete="new-password"><label for="fp2">Confirm new password</label><input id="fp2" type="password" autocomplete="new-password"><div class="row" style="margin-top:14px"><button data-act="fpsave">Reset password</button></div>${back}</div></div>`;
 }
 function authView(){
@@ -1212,7 +1213,7 @@ document.addEventListener('change',async ev=>{
 });
 window.addEventListener('beforeunload',e=>{if(bd&&bd.slides.some(x=>x.d)){e.preventDefault();e.returnValue=''}});
 (async()=>{const vc=new URLSearchParams(location.search).get('verify');if(vc){showVerify(vc);return}
-try{const r=await sb.auth.getSession();if(r.data&&r.data.session)await enter(r.data.session.user)}catch(e){say(e.message||String(e))}render()})();
+try{const r=await sb.auth.getSession();if(RECOVERY){history.replaceState(null,'',location.pathname+location.search);if(r.data&&r.data.session){fpStep='new';fpEmail=r.data.session.user.email||''}else say('This reset link is invalid or has expired. Please request a new one.')}else if(r.data&&r.data.session)await enter(r.data.session.user)}catch(e){say(e.message||String(e))}render()})();
 </script>
 
 <style>
