@@ -248,12 +248,21 @@ async function enter(u){me={id:u.id};try{await load()}catch(e){me=null;throw e}t
 async function refresh(){await load();render()}
 function logo(){return `<svg viewBox="0 0 72 36" aria-hidden="true"><polyline points="4,8 20,28 36,14 52,30 68,6" fill="none" stroke="var(--line)" stroke-width="2"/><g fill="var(--star)"><circle cx="4" cy="8" r="3"/><circle cx="20" cy="28" r="3.5"/><circle cx="36" cy="14" r="3"/><circle cx="52" cy="30" r="3.5"/><circle cx="68" cy="6" r="3"/></g></svg>`}
 const FULL='Cassiopeia Academic System for Teaching, Records &amp; Administration';
+let fpStep='',fpEmail='';
+function fpView(){
+ const head=`<div class="brand" style="margin-bottom:18px">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div>`;
+ const back=`<p class="sub" style="margin:14px 0 0"><a href="#" data-act="fpcancel">Back to log in</a></p>`;
+ if(fpStep==='email')return `<div class="auth">${head}<div class="card"><h2>Reset your password</h2><p class="sub" style="margin-top:0">Enter the email address of your CASTRA account. If the account exists, we will email you a verification code.</p><label for="fe">Email</label><input id="fe" type="email" autocomplete="email" value="${esc(fpEmail)}"><div class="row" style="margin-top:14px"><button data-act="fpsend">Send verification code</button></div>${back}</div></div>`;
+ if(fpStep==='code')return `<div class="auth">${head}<div class="card"><h2>Enter verification code</h2><p class="sub" style="margin-top:0">If an account exists for <b>${esc(fpEmail)}</b>, a verification code has been sent. Check your inbox (and spam folder) and enter it below.</p><label for="fc">Verification code</label><input id="fc" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Enter the code from your email"><div class="row" style="margin-top:14px"><button data-act="fpverify">Verify code</button><button class="ghost" data-act="fpresend">Resend code</button></div>${back}</div></div>`;
+ return `<div class="auth">${head}<div class="card"><h2>Choose a new password</h2><p class="sub" style="margin-top:0">Code verified. Set a new password for <b>${esc(fpEmail)}</b>.</p><label for="fp1">New password</label><input id="fp1" type="password" autocomplete="new-password"><label for="fp2">Confirm new password</label><input id="fp2" type="password" autocomplete="new-password"><div class="row" style="margin-top:14px"><button data-act="fpsave">Reset password</button></div>${back}</div></div>`;
+}
 function authView(){
+ if(fpStep)return fpView();
  const up=mode==='up';
  return `<div class="auth"><div class="brand" style="margin-bottom:18px">${logo()}<div><h1>CASTRA</h1><div class="sub fn">${FULL}</div></div></div><div class="card"><h2>${up?'Create an account':'Log in'}</h2>
  ${up?'<label for="n">Full name</label><input id="n" autocomplete="name"><label for="i">Institution</label><input id="i" autocomplete="organization">':''}
  <label for="e">Email</label><input id="e" type="email" autocomplete="email"><label for="p">Password</label><input id="p" type="password" autocomplete="${up?'new-password':'current-password'}">
- <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>
+ <div class="row" style="margin-top:14px"><button data-act="${up?'signup':'login'}">${up?'Create account':'Log in'}</button></div>${up?'':'<p class="sub" style="margin:12px 0 0"><a href="#" data-act="fpstart">Forgot password?</a></p>'}
  <p class="sub" style="margin:14px 0 0">${up?'Already have an account?':'New here?'} <a href="#" data-act="mode">${up?'Log in':'Create an account'}</a></p></div></div>`;
 }
 const MENU=[['dash','📊','Dashboard'],['members','✦','Members'],['notice','','Notice'],['students','👨‍🎓','Students & Teachers'],['rooms','📚','Classes'],['meetings','🎥','Meetings'],['attend','✅','Attendance'],['marks','','Marks & Assessments'],['pres','🖥️','Presentations'],['res','','Resources'],['board','','Whiteboard'],['records','📂','Class Records'],['sched','📅','Schedule'],['analytics','','Analytics'],['ach','','Achievements'],['admin','⚙️','Administration',0,1]];
@@ -999,6 +1008,20 @@ const ACT={
  async login(){
   const email=val('e').toLowerCase(),password=$('p').value;if(!email||!password)return say('Enter your email and password.');
   say('');const r=await sb.auth.signInWithPassword({email,password});if(r.error)return say(r.error.message);await enter(r.data.user)},
+ fpstart(){fpEmail=val('e').toLowerCase()||fpEmail;fpStep='email';render()},
+ async fpcancel(){fpStep='';try{await sb.auth.signOut()}catch(e){}render()},
+ async fpsend(){const email=val('fe').toLowerCase();if(!/^\S+@\S+\.\S+$/.test(email))return say('Enter a valid email address.');
+  say('');const r=await sb.auth.resetPasswordForEmail(email);
+  if(r.error)return say(r.error.message);
+  fpEmail=email;fpStep='code';render();say('If an account exists for that email, a verification code has been sent.')},
+ async fpresend(){const r=await sb.auth.resetPasswordForEmail(fpEmail);if(r.error)return say(r.error.message);say('A new code has been requested. Check your email.')},
+ async fpverify(){const token=val('fc').replace(/\s+/g,'');if(!token)return say('Enter the verification code.');
+  const r=await sb.auth.verifyOtp({email:fpEmail,token,type:'recovery'});
+  if(r.error)return say('That code is incorrect or has expired. Please try again or request a new code.');
+  fpStep='new';render();say('Code verified. Choose a new password.')},
+ async fpsave(){const a=$('fp1').value,b=$('fp2').value;if(a.length<6)return say('Use a password with at least 6 characters.');if(a!==b)return say('The two passwords do not match.');
+  const r=await sb.auth.updateUser({password:a});if(r.error)return say(r.error.message);
+  await sb.auth.signOut();fpStep='';fpEmail='';mode='in';render();say('Password reset successfully. Please log in with your new password.')},
  async out(){await sb.auth.signOut();me=null;openRoom=null;mode='in';render()},
  tab(el){tab=el.dataset.v;openRoom=null;viewing=null;bv=null;if(innerWidth<760)navOpen=false;render();if(tab==='ach'&&ACH.st!=='loading')achLoad();if(tab==='notice'&&NT.st!=='loading')noticeLoad();if(tab==='sched'&&!scheduleLoaded)scheduleLoad();if(tab==='meetings')meetingsLoad();if(tab==='profile')profileLoad(profileTarget||me.id)},
  async meetrefresh(){await meetingsLoad()},
@@ -1165,7 +1188,7 @@ const ACT={
 };
 document.addEventListener('click',async ev=>{
  const el=ev.target.closest('[data-act]');if(!el||el.disabled)return;const f=ACT[el.dataset.act];if(!f)return;
- if(el.dataset.act==='mode'||el.dataset.act==='totl')ev.preventDefault();
+ if(['mode','totl','fpstart','fpcancel'].includes(el.dataset.act))ev.preventDefault();
  el.disabled=true;try{await f(el)}catch(e){say(e.message||String(e))}finally{el.disabled=false}
 });
 document.addEventListener('toggle',ev=>{const d=ev.target;if(d.dataset&&d.dataset.d){if(d.open)dopen.add(d.dataset.d);else dopen.delete(d.dataset.d)}},true);
